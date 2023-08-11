@@ -1,0 +1,9 @@
+[settings]
+TOKEN = 12345:AAAAA
+admins = 12345
+[db]
+user = postgres
+password = postgres
+database = my_database
+host = 127.0.0.1
+port = 5432
