@@ -1,11 +1,13 @@
+import paramiko
 from aiogram.types import Message, CallbackQuery
 from aiogram.dispatcher import FSMContext
 
 import keyboards.admin as admin_kb
-from states.admin import Mailing, CreateCountry
+from states.admin import CreateServer
 from create_bot import dp
 import asyncio
 import database as db
+from utils import server as server_utils
 
 
 @dp.callback_query_handler(admin_kb.admin_server.filter(), is_admin=True)
@@ -13,28 +15,59 @@ async def admin_countries(call: CallbackQuery, callback_data: dict):
     server_id = int(callback_data["server_id"])
     server = await db.get_server(server_id)
     await call.message.edit_text(server["ip_address"], reply_markup=admin_kb.get_server(server))
-#
-#
-# @dp.callback_query_handler(admin_kb.admin_country.filter(), is_admin=True)
-# async def func(call: CallbackQuery, callback_data: dict):
-#     country_id = int(callback_data["country_id"])
-#     country = await db.get_country(country_id)
-#     servers = await db.get_servers_by_country_id(country_id)
-#     await call.message.edit_text(country["name"], reply_markup=admin_kb.get_country(country, servers))
-#
-#
-# @dp.callback_query_handler(text="create_country", is_admin=True)
-# async def create_country_start(call: CallbackQuery):
-#     await CreateCountry.name.set()
-#     await call.message.answer("Введите название страны", reply_markup=admin_kb.cancel)
-#     await call.answer()
-#
-#
-# @dp.message_handler(state=CreateCountry.name, is_admin=True)
-# async def create_country_name(message: Message):
-#     name = message.text
-#     country_id = await db.add_country(name)
-#     country = await db.get_country(country_id)
-#     servers = await db.get_servers_by_country_id(country_id)
-#     await message.answer("Страна успешно создана\n\n" + country["name"],
-#                          reply_markup=admin_kb.get_country(country, servers))
+
+
+@dp.callback_query_handler(admin_kb.create_server.filter(), is_admin=True)
+async def create_server_start(call: CallbackQuery, state: FSMContext, callback_data: dict):
+    country_id = int(callback_data["country_id"])
+    await state.set_state(CreateServer.ip_address)
+    await state.update_data(country_id=country_id)
+    await call.message.answer("Введите ip адрес", reply_markup=admin_kb.cancel)
+    await call.answer()
+
+
+@dp.message_handler(state=CreateServer.ip_address, is_admin=True)
+async def create_server_ip(message: Message, state: FSMContext):
+    ip_address = message.text
+    await state.update_data(ip_address=ip_address)
+    await message.answer("Введите пароль")
+    await state.set_state(CreateServer.server_password)
+
+
+@dp.message_handler(state=CreateServer.server_password, is_admin=True)
+async def create_server_password(message: Message, state: FSMContext):
+    password = message.text
+    data = await state.get_data()
+    ip_address = data["ip_address"]
+    country_id = data["country_id"]
+
+    client = paramiko.SSHClient()
+    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    try:
+        client.connect(hostname=ip_address, password=password, username="root", port=22)
+    except paramiko.ssh_exception.AuthenticationException:
+        print("asd")
+        await message.answer("Проблема со входом на сервер, повторите попытку позже")
+        await state.finish()
+        countries = await db.get_countries()
+        return await message.answer("Меню серверов:", reply_markup=admin_kb.get_countries(countries))
+    resp = await server_utils.install(ip_address, password)
+    if not resp["status"]:
+        await message.answer("Проблема со входом на сервер, повторите попытку позже")
+        await state.finish()
+        countries = await db.get_countries()
+        return await message.answer("Меню серверов:", reply_markup=admin_kb.get_countries(countries))
+    server = await db.add_server(ip_address, password, resp["outline_url"], resp["outline_sha"], country_id)
+    await message.answer("Сервер успешно создан", reply_markup=admin_kb.get_server(server))
+    #
+    #
+    # @dp.callback_query_handler(admin_kb.admin_country.filter(), is_admin=True)
+    # async def func(call: CallbackQuery, callback_data: dict):
+    #     country_id = int(callback_data["country_id"])
+    #     country = await db.get_country(country_id)
+    #     servers = await db.get_servers_by_country_id(country_id)
+    #     await call.message.edit_text(country["name"], reply_markup=admin_kb.get_country(country, servers))
+    #
+    #
+
+    #

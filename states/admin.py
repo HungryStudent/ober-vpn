@@ -7,3 +7,8 @@ class Mailing(StatesGroup):
 
 class CreateCountry(StatesGroup):
     name = State()
+
+
+class CreateServer(StatesGroup):
+    ip_address = State()
+    server_password = State()

@@ -18,12 +18,15 @@ async def get_servers_by_country_id(country_id):
     return rows
 
 
-async def add_server(name):
+async def add_server(ip_address, server_password, outline_url, outline_sha, country_id):
     conn: Connection = await get_conn()
-    country_id = await conn.fetchval(
-        "INSERT INTO countries(name) VALUES ($1) RETURNING country_id", name)
+    server = await conn.fetchrow(
+        "INSERT INTO servers(ip_address, server_password, outline_url, outline_sha, country_id)"
+        "VALUES ($1, $2, $3, $4, $6) RETURNING *",
+        ip_address, server_password, outline_url, outline_sha, country_id
+    )
     await conn.close()
-    return country_id
+    return server
 
 
 async def get_servers():

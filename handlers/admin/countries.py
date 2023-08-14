@@ -35,4 +35,5 @@ async def create_country_name(message: Message):
     country_id = await db.add_country(name)
     country = await db.get_country(country_id)
     servers = await db.get_servers_by_country_id(country_id)
-    await message.answer("Страна успешно создана\n\n" + country["name"], reply_markup=admin_kb.get_country(country, servers))
+    await message.answer("Страна успешно создана\n\n" + country["name"],
+                         reply_markup=admin_kb.get_country(country, servers))
