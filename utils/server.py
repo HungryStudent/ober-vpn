@@ -2,6 +2,7 @@ import asyncio
 import re
 
 import qrcode as qrcode
+from outline_api import Manager
 
 
 async def execute_command(command, has_resp=False):
@@ -17,7 +18,6 @@ async def execute_command(command, has_resp=False):
 
 async def install(ip_address, password):
     cmd = f"/root/script/mpivpn {ip_address} {password} install"
-    print(cmd)
     resp = await execute_command(cmd, has_resp=True)
     print(resp)
     pattern = re.compile('API Outline: "apiUrl":"(.*)","certSha256":"(.*)"}')
@@ -32,7 +32,6 @@ async def install(ip_address, password):
 async def create_wireguard_config(ip_address, password, device_id):
     cmd = f'/root/script/mpivpn {ip_address} {password} "pivpn add -n u{device_id}"'
     resp = await execute_command(cmd, has_resp=True)
-    print(resp)
     await get_wireguard_config(ip_address, password, device_id)
 
 
@@ -42,3 +41,14 @@ async def get_wireguard_config(ip_address, password, device_id):
     with open(f"u{device_id}.conf") as fh:
         img = qrcode.make(fh.read())
         img.save(f"u{device_id}.png")
+
+
+class Outline:
+    def __init__(self, outline_url, outline_sha):
+        self.manager = Manager(apiurl=outline_url, apicrt=outline_sha)
+
+    def create_client(self, user_id):
+        client = self.manager.new()
+        self.manager.rename(client["id"], user_id)
+        return client
+

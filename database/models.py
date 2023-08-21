@@ -26,5 +26,6 @@ async def create_models():
                        "user_id BIGINT REFERENCES users (user_id),"
                        "device_type VARCHAR(9),"
                        "name VARCHAR(64),"
-                       "server_id SMALLINT REFERENCES servers (server_id))")
+                       "server_id SMALLINT REFERENCES servers (server_id),"
+                       "outline_id VARCHAR(10))")
     await conn.close()

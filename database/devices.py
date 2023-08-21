@@ -18,3 +18,8 @@ async def add_new_device(user_id, device_type, name, server_id):
         user_id, device_type, name, server_id)
     await conn.close()
     return device_id
+
+
+async def set_outline_id(device_id, outline_id):
+    conn: Connection = await get_conn()
+    await conn.execute("UPDATE devices SET outline_id = $2 WHERE device_id = $1", device_id, outline_id)

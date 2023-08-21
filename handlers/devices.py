@@ -54,3 +54,8 @@ async def new_device_country(call: CallbackQuery, state: FSMContext, callback_da
         await call.message.answer_document(open(f"u{device_id}.conf", "rb"))
         os.remove(f"u{device_id}.png")
         os.remove(f"u{device_id}.conf")
+    elif data["device_type"] == "outline":
+        outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
+        outline_client = outline_manager.create_client(device_id)
+        await call.message.answer(outline_client["accessUrl"])
+        await db.set_outline_id(device_id, outline_client["id"])
