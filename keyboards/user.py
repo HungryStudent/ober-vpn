@@ -22,7 +22,7 @@ choose_device_type = InlineKeyboardMarkup(row_width=2).add(
 def get_devices(devices):
     kb = InlineKeyboardMarkup(row_width=1)
     for my_device in devices:
-        kb.add(InlineKeyboardButton(my_device["name"], callback_data=device.new(my_device["id"])))
+        kb.add(InlineKeyboardButton(my_device["name"], callback_data=device.new(my_device["device_id"])))
     kb.add(InlineKeyboardButton("Добавить устройство", callback_data="new_device"))
     return kb
 

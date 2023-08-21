@@ -1,3 +1,5 @@
+import os
+
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from aiogram.types import Message, CallbackQuery
@@ -48,6 +50,7 @@ async def new_device_country(call: CallbackQuery, state: FSMContext, callback_da
     await call.message.edit_text("Девайс успешно создан")
     if data["device_type"] == "wireguard":
         await server_utils.create_wireguard_config(server["ip_address"], server["server_password"], call.from_user.id)
-        await call.message.answer_photo(open(f"{call.from_user.id}.png", "rb"))
-        await call.message.answer_document(open(f"{call.from_user.id}.conf", "rb"))
-
+        await call.message.answer_photo(open(f"u{call.from_user.id}.png", "rb"))
+        await call.message.answer_document(open(f"u{call.from_user.id}.conf", "rb"))
+        os.remove(f"u{call.from_user.id}.png")
+        os.remove(f"u{call.from_user.id}.conf")
