@@ -1,8 +1,7 @@
 from aiogram.utils import executor
 from create_bot import dp
 import database as db
-from handlers import user
-from handlers import admin
+import handlers
 
 
 async def on_startup(_):

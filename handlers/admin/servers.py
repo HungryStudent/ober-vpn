@@ -3,7 +3,7 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.dispatcher import FSMContext
 
 import keyboards.admin as admin_kb
-from states.admin import CreateServer
+from states.admin import CreateServer, ChangeServer
 from create_bot import dp
 import asyncio
 import database as db
@@ -41,16 +41,19 @@ async def create_server_password(message: Message, state: FSMContext):
     ip_address = data["ip_address"]
     country_id = data["country_id"]
 
+    await message.answer("Ожидайте, настраиваем сервер")
+
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
     try:
         client.connect(hostname=ip_address, password=password, username="root", port=22)
     except paramiko.ssh_exception.AuthenticationException:
-        print("asd")
         await message.answer("Проблема со входом на сервер, повторите попытку позже")
         await state.finish()
         countries = await db.get_countries()
         return await message.answer("Меню серверов:", reply_markup=admin_kb.get_countries(countries))
+    await message.answer("Ожидайте, настраиваем сервер")
     resp = await server_utils.install(ip_address, password)
     if not resp["status"]:
         await message.answer("Проблема со входом на сервер, повторите попытку позже")
@@ -70,4 +73,26 @@ async def create_server_password(message: Message, state: FSMContext):
     #
     #
 
-    #
+
+@dp.callback_query_handler(admin_kb.change_server.filter())
+async def change_server_start(call: CallbackQuery, state: FSMContext, callback_data: dict):
+    server_id = callback_data["server_id"]
+    field = callback_data["field"]
+    if field == "password":
+        await call.message.answer("Введите новый пароль")
+    await state.set_state(ChangeServer.new_value)
+    await state.update_data(
+        server_id=server_id,
+        field=field
+    )
+
+
+@dp.message_handler(state=ChangeServer.new_value)
+async def change_server_new_value(message: Message, state: FSMContext):
+    new_value = message.text
+    data = await state.get_data()
+    if data["field"] == "password":
+        await db.change_server_password(data["server_id"], new_value)
+    countries = await db.get_countries()
+    await message.answer("Пароль успешно изменён", reply_markup=admin_kb.get_countries(countries))
+    await state.finish()

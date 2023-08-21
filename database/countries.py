@@ -25,3 +25,11 @@ async def get_country(country_id):
     row = await conn.fetchrow("SELECT * from countries WHERE country_id = $1", country_id)
     await conn.close()
     return row
+
+
+async def get_countries_for_new_device():
+    conn: Connection = await get_conn()
+    rows = await conn.fetch(
+        "SELECT * from countries JOIN servers s on countries.country_id = s.country_id WHERE s.is_current = TRUE")
+    await conn.close()
+    return rows

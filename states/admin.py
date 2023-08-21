@@ -12,3 +12,7 @@ class CreateCountry(StatesGroup):
 class CreateServer(StatesGroup):
     ip_address = State()
     server_password = State()
+
+
+class ChangeServer(StatesGroup):
+    new_value = State()

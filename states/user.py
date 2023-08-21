@@ -1,5 +1,7 @@
 from aiogram.dispatcher.filters.state import StatesGroup, State
 
 
-class BaseStates(StatesGroup):
-    text = State()
+class NewDevice(StatesGroup):
+    device_type = State()
+    name = State()
+    country = State()

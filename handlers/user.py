@@ -21,3 +21,11 @@ async def start_command(message: Message, state: FSMContext):
 async def cancel(message: Message, state: FSMContext):
     await state.finish()
     await message.answer("Ввод отменен", reply_markup=user_kb.menu)
+
+
+@dp.callback_query_handler(text="cancel", state="*")
+async def inline_cancel(call: CallbackQuery, state: FSMContext):
+    await state.finish()
+    await call.message.edit_text("Ввод отменен", reply_markup=user_kb.menu)
+    await call.answer()
+
