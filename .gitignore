@@ -1,2 +1,4 @@
 settings.ini
 .idea
+poetry.lock
+pyproject.toml
