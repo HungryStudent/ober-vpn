@@ -29,16 +29,16 @@ async def install(ip_address, password):
     return {"status": True, "outline_url": match.group(1), "outline_sha": match.group(2)}
 
 
-async def create_wireguard_config(ip_address, password, user_id):
-    cmd = f'/root/script/mpivpn {ip_address} {password} "pivpn add -n u{user_id}"'
+async def create_wireguard_config(ip_address, password, device_id):
+    cmd = f'/root/script/mpivpn {ip_address} {password} "pivpn add -n u{device_id}"'
     resp = await execute_command(cmd, has_resp=True)
     print(resp)
-    await get_wireguard_config(ip_address, password, user_id)
+    await get_wireguard_config(ip_address, password, device_id)
 
 
-async def get_wireguard_config(ip_address, password, user_id):
-    cmd = f'/root/script/mpivpn {ip_address} {password} "cat /home/wgvpn/configs/u{user_id}.conf" > u{user_id}.conf'
+async def get_wireguard_config(ip_address, password, device_id):
+    cmd = f'/root/script/mpivpn {ip_address} {password} "cat /home/wgvpn/configs/u{device_id}.conf" > u{device_id}.conf'
     await execute_command(cmd, has_resp=True)
-    with open(f"u{user_id}.conf") as fh:
+    with open(f"u{device_id}.conf") as fh:
         img = qrcode.make(fh.read())
-        img.save(f"u{user_id}.png")
+        img.save(f"u{device_id}.png")

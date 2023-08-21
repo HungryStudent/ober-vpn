@@ -13,8 +13,8 @@ async def get_devices_by_user_id(user_id):
 
 async def add_new_device(user_id, device_type, name, server_id):
     conn: Connection = await get_conn()
-    country_id = await conn.fetchval(
+    device_id = await conn.fetchval(
         "INSERT INTO devices(user_id, device_type, name, server_id) VALUES ($1, $2, $3, $4) RETURNING device_id",
         user_id, device_type, name, server_id)
     await conn.close()
-    return country_id
+    return device_id
