@@ -9,7 +9,8 @@ async def create_models():
                        "username VARCHAR(32),"
                        "firstname VARCHAR(64),"
                        "reg_time TIMESTAMP DEFAULT NOW(),"
-                       "balance INTEGER DEFAULT 0)")
+                       "balance INTEGER DEFAULT 0,"
+                       "inviter_id BIGINT)")
     await conn.execute("CREATE TABLE IF NOT EXISTS countries("
                        "country_id SMALLSERIAL PRIMARY KEY,"
                        "name VARCHAR(32))")

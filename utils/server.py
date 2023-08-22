@@ -2,7 +2,10 @@ import asyncio
 import re
 
 import qrcode as qrcode
+import requests
 from outline_api import Manager
+
+from config_parser import outline_limit
 
 
 async def execute_command(command, has_resp=False):
@@ -50,5 +53,19 @@ class Outline:
     def create_client(self, user_id):
         client = self.manager.new()
         self.manager.rename(client["id"], user_id)
+        self.set_data_limit(client["id"], outline_limit)
         return client
 
+    def get_clients(self):
+        clients = self.manager.all()
+        return clients
+
+    def get_client(self, client_id):
+        clients = self.get_clients()
+        for client in clients:
+            if client["id"] == client_id:
+                return client
+
+    def set_data_limit(self, client_id, limit):
+        data = {"limit": {"bytes": limit}}
+        requests.put(f"{self.manager.apiurl}/access-keys/{client_id}/data-limit", json=data, verify=False)

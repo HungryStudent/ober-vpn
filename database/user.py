@@ -5,11 +5,11 @@ from config_parser import DB
 from database import get_conn
 
 
-async def add_user(user_id, username, firstname):
+async def add_user(user_id, username, firstname, inviter_id):
     conn: Connection = await get_conn()
     await conn.execute(
-        "INSERT INTO users(user_id, username, firstname) VALUES ($1, $2, $3)",
-        user_id, username, firstname)
+        "INSERT INTO users(user_id, username, firstname, inviter_id) VALUES ($1, $2, $3, $4)",
+        user_id, username, firstname, inviter_id)
     await conn.close()
 
 
@@ -25,3 +25,8 @@ async def get_user(user_id):
     row = await conn.fetchrow("SELECT * from users WHERE user_id = $1", user_id)
     await conn.close()
     return row
+
+
+async def update_user_balance(user_id, balance_diff):
+    conn: Connection = await get_conn()
+    await conn.execute("UPDATE users SET balance = balance + $2 WHERE user_id = $1", user_id, balance_diff)

@@ -9,6 +9,7 @@ import keyboards.user as user_kb
 from create_bot import dp
 import database as db
 from utils import server as server_utils
+from config_parser import outline_price, outline_limit, wireguard_price
 
 
 @dp.callback_query_handler(text="devices")
@@ -28,6 +29,15 @@ async def new_device_start(call: CallbackQuery, state: FSMContext):
 
 @dp.callback_query_handler(state=NewDevice.device_type)
 async def new_device_device_type(call: CallbackQuery, state: FSMContext):
+    user = await db.get_user(call.from_user.id)
+    no_balance = False
+    if (call.data == "outline" and user["balance"] < outline_price) or (
+            call.data == "wireguard" and user["balance"] < wireguard_price):
+        no_balance = True
+    if no_balance:
+        await call.message.edit_text("Недостаточно баланса для создания конфига", reply_markup=user_kb.menu)
+        return await state.finish()
+
     await state.update_data(device_type=call.data)
     await state.set_state(NewDevice.name)
     await call.message.edit_text("Введите название устройства", reply_markup=user_kb.inline_cancel)
@@ -48,14 +58,59 @@ async def new_device_country(call: CallbackQuery, state: FSMContext, callback_da
     server = await db.get_current_server_by_country_id(country_id)
     device_id = await db.add_new_device(call.from_user.id, data["device_type"], data["name"], server["server_id"])
     await call.message.edit_text("Девайс успешно создан")
+    price = 0
     if data["device_type"] == "wireguard":
         await server_utils.create_wireguard_config(server["ip_address"], server["server_password"], device_id)
         await call.message.answer_photo(open(f"u{device_id}.png", "rb"))
-        await call.message.answer_document(open(f"u{device_id}.conf", "rb"))
+        await call.message.answer_document(open(f"u{device_id}.conf", "rb"), reply_markup=user_kb.menu)
         os.remove(f"u{device_id}.png")
         os.remove(f"u{device_id}.conf")
+        price = wireguard_price
     elif data["device_type"] == "outline":
         outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
         outline_client = outline_manager.create_client(device_id)
-        await call.message.answer(outline_client["accessUrl"])
+        await call.message.answer(outline_client["accessUrl"], reply_markup=user_kb.menu)
         await db.set_outline_id(device_id, outline_client["id"])
+        price = outline_price
+
+    await db.update_user_balance(call.from_user.id, -price)
+
+
+@dp.callback_query_handler(user_kb.delete_device.filter())
+async def delete_device(call: CallbackQuery, state: FSMContext, callback_data: dict):
+    device_id = int(callback_data["device_id"])
+    await call.message.answer("Вы действительно хотите удалить устройство?",
+                              reply_markup=user_kb.get_delete_device(device_id))
+    await call.answer()
+
+
+@dp.callback_query_handler(user_kb.delete_device_action.filter())
+async def delete_device_action(call: CallbackQuery, state: FSMContext, callback_data: dict):
+    device_id = int(callback_data["device_id"])
+    action = callback_data["action"]
+    if action == "approve":
+        await db.delete_device(device_id)
+        await call.message.edit_text("Устройство удалено", reply_markup=user_kb.menu)
+    elif action == "cancel":
+        await call.message.edit_text("Вы отказались от удаления аккаунта устройства!", reply_markup=user_kb.menu)
+
+
+@dp.callback_query_handler(user_kb.device.filter())
+async def device_menu(call: CallbackQuery, state: FSMContext, callback_data: dict):
+    device_id = int(callback_data["device_id"])
+    device = await db.get_device(device_id)
+    server = await db.get_server(device["server_id"])
+    if device["device_type"] == "wireguard":
+        await server_utils.get_wireguard_config(server["ip_address"], server["server_password"], device_id)
+        await call.message.answer_photo(open(f"u{device_id}.png", "rb"))
+        await call.message.answer_document(open(f"u{device_id}.conf", "rb"), reply_markup=user_kb.menu)
+        os.remove(f"u{device_id}.png")
+        os.remove(f"u{device_id}.conf")
+    elif device["device_type"] == "outline":
+        outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
+        outline_client = outline_manager.get_client(device["outline_id"])
+        if outline_client is None:
+            outline_client = outline_manager.create_client(device_id)
+            await db.set_outline_id(device_id, outline_client["id"])
+
+        await call.message.answer(outline_client["accessUrl"], reply_markup=user_kb.menu)

@@ -2,6 +2,8 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMar
 from aiogram.utils.callback_data import CallbackData
 
 device = CallbackData("device", "device_id")
+delete_device = CallbackData("delete_device", "device_id")
+delete_device_action = CallbackData("delete_device_action", "device_id", "action")
 new_device_country = CallbackData("new_device_country", "country_id")
 
 inline_cancel = InlineKeyboardMarkup(row_width=1).add(InlineKeyboardButton("Отмена", callback_data="cancel"))
@@ -20,9 +22,10 @@ choose_device_type = InlineKeyboardMarkup(row_width=2).add(
 
 
 def get_devices(devices):
-    kb = InlineKeyboardMarkup(row_width=1)
+    kb = InlineKeyboardMarkup(row_width=2)
     for my_device in devices:
-        kb.add(InlineKeyboardButton(my_device["name"], callback_data=device.new(my_device["device_id"])))
+        kb.add(InlineKeyboardButton(my_device["name"], callback_data=device.new(my_device["device_id"])),
+               InlineKeyboardButton("❌ Удалить", callback_data=delete_device.new(my_device["device_id"])))
     kb.add(InlineKeyboardButton("Добавить устройство", callback_data="new_device"))
     return kb
 
@@ -31,4 +34,11 @@ def get_countries(countries):
     kb = InlineKeyboardMarkup(row_width=1)
     for country in countries:
         kb.add(InlineKeyboardButton(country["name"], callback_data=new_device_country.new(country["country_id"])))
+    return kb
+
+
+def get_delete_device(device_id):
+    kb = InlineKeyboardMarkup(row_width=2)
+    kb.add(InlineKeyboardButton("Да, удалить", callback_data=delete_device_action.new(device_id, "approve")),
+           InlineKeyboardButton("Не удалять", callback_data=delete_device_action.new(device_id, "cancel")))
     return kb

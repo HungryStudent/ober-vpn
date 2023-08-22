@@ -23,3 +23,14 @@ async def add_new_device(user_id, device_type, name, server_id):
 async def set_outline_id(device_id, outline_id):
     conn: Connection = await get_conn()
     await conn.execute("UPDATE devices SET outline_id = $2 WHERE device_id = $1", device_id, outline_id)
+
+
+async def delete_device(device_id):
+    conn: Connection = await get_conn()
+    await conn.execute("DELETE FROM devices WHERE device_id = $1", device_id)
+
+
+async def get_device(device_id):
+    conn: Connection = await get_conn()
+    row = await conn.fetchrow("SELECT * FROM devices WHERE device_id = $1", device_id)
+    return row

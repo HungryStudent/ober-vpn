@@ -3,6 +3,7 @@ from aiogram.dispatcher.filters import Text
 from aiogram.types import Message, CallbackQuery
 
 import keyboards.user as user_kb
+from config_parser import BOT_NAME
 from create_bot import dp
 import database as db
 
@@ -12,9 +13,20 @@ async def start_command(message: Message, state: FSMContext):
     await state.finish()
     user = await db.get_user(message.from_user.id)
     if user is None:
-        await db.add_user(message.from_user.id, message.from_user.username, message.from_user.first_name)
+        try:
+            inviter_id = int(message.get_args())
+        except ValueError:
+            inviter_id = None
+        else:
+            if inviter_id == message.from_user.id:
+                inviter_id = None
+            else:
+                await db.update_user_balance(inviter_id, 50)
+                await db.update_user_balance(message.from_user.id, 50)
 
-    await message.answer("""Приветствие""", reply_markup=user_kb.menu)
+        await db.add_user(message.from_user.id, message.from_user.username, message.from_user.first_name, inviter_id)
+        user = {"balance": 0}
+    await message.answer(f"""Приветствие, ваш баланс: {user['balance']}""", reply_markup=user_kb.menu)
 
 
 @dp.message_handler(state="*", text="Отмена")
@@ -29,3 +41,11 @@ async def inline_cancel(call: CallbackQuery, state: FSMContext):
     await call.message.edit_text("Ввод отменен", reply_markup=user_kb.menu)
     await call.answer()
 
+
+@dp.callback_query_handler(text="ref_menu")
+async def ref_menu(call: CallbackQuery, state: FSMContext):
+    await call.message.answer(f"""Пошлите другу ссылку:
+
+https://t.me/{BOT_NAME}?start={call.from_user.id}
+
+Когда ваш друг зайдет в наш бот по этой ссылке и создаст аккаунт, вы получите 50₽ на баланс!""")
