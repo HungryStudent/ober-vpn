@@ -5,6 +5,7 @@ device = CallbackData("device", "device_id")
 delete_device = CallbackData("delete_device", "device_id")
 delete_device_action = CallbackData("delete_device_action", "device_id", "action")
 new_device_country = CallbackData("new_device_country", "country_id")
+payment = CallbackData("payment", "amount")
 
 inline_cancel = InlineKeyboardMarkup(row_width=1).add(InlineKeyboardButton("Отмена", callback_data="cancel"))
 
@@ -19,6 +20,10 @@ choose_device_type = InlineKeyboardMarkup(row_width=2).add(
     InlineKeyboardButton("WireGuard", callback_data="wireguard"),
     InlineKeyboardButton("Outline", callback_data="outline")
 )
+
+balance_amounts = [100, 200, 300, 400, 500, 700, 1000, 2000, 3000]
+balance = InlineKeyboardMarkup(row_width=3).add(
+    *[InlineKeyboardButton(text=f"{amount}₽", callback_data=payment.new(amount)) for amount in balance_amounts])
 
 
 def get_devices(devices):

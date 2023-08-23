@@ -8,6 +8,7 @@ outline_price = int(config["settings"]["outline_price"])
 outline_limit = int(config["settings"]["outline_limit"])
 wireguard_price = int(config["settings"]["wireguard_price"])
 BOT_NAME = config["settings"]["BOT_NAME"]
+PAY_TOKEN = config["settings"]["PAY_TOKEN"]
 
 
 class DB:
