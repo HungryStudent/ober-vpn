@@ -16,3 +16,7 @@ class CreateServer(StatesGroup):
 
 class ChangeServer(StatesGroup):
     new_value = State()
+
+
+class ChangeCountry(StatesGroup):
+    new_value = State()

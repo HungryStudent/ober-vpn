@@ -55,17 +55,20 @@ async def disable_wireguard_config(ip_address, password, device_id):
     cmd = f'/root/script/mpivpn {ip_address} {password} "pivpn off -y u{device_id}"'
     await execute_command(cmd, has_resp=True)
 
+
 async def enable_wireguard_config(ip_address, password, device_id):
     cmd = f'/root/script/mpivpn {ip_address} {password} "pivpn on -y u{device_id}"'
     await execute_command(cmd, has_resp=True)
+
+
 class Outline:
     def __init__(self, outline_url, outline_sha):
         self.manager = Manager(apiurl=outline_url, apicrt=outline_sha)
 
-    def create_client(self, user_id):
+    def create_client(self, user_id, limit):
         client = self.manager.new()
         self.manager.rename(client["id"], str(user_id))
-        self.set_data_limit(client["id"], outline_limit)
+        self.set_data_limit(client["id"], limit)
         return client
 
     def get_clients(self):
@@ -79,7 +82,7 @@ class Outline:
                 return client
 
     def set_data_limit(self, client_id, limit):
-        data = {"limit": {"bytes": limit}}
+        data = {"limit": {"bytes": limit * (1000 ** 3)}}
         requests.put(f"{self.manager.apiurl}/access-keys/{client_id}/data-limit", json=data, verify=False)
 
     def delete_client(self, client_id):

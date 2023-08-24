@@ -7,7 +7,6 @@ from create_bot import dp
 
 @dp.callback_query_handler(is_admin=True, text="statistics")
 async def statistics(call: CallbackQuery):
-    await call.message.answer("ДЫВЛАЬ")
     await call.answer()
 
     users = await db.get_users()

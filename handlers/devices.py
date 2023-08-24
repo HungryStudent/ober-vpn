@@ -5,7 +5,7 @@ from aiogram.types import Message, CallbackQuery
 
 import database as db
 import keyboards.user as user_kb
-from config_parser import outline_price, outline_limit, wireguard_price
+from config_parser import outline_prices, outline_limit, wireguard_price
 from create_bot import dp
 from states.user import NewDevice
 from utils import server as server_utils
@@ -30,15 +30,27 @@ async def new_device_start(call: CallbackQuery, state: FSMContext):
 @dp.callback_query_handler(state=NewDevice.device_type)
 async def new_device_device_type(call: CallbackQuery, state: FSMContext):
     user = await db.get_user(call.from_user.id)
-    no_balance = False
-    if (call.data == "outline" and user["balance"] < outline_price) or (
-            call.data == "wireguard" and user["balance"] < wireguard_price):
-        no_balance = True
-    if no_balance:
+    await state.update_data(device_type=call.data)
+    if call.data == "outline":
+        await call.message.edit_text("Выберите трафик:", reply_markup=user_kb.limit)
+        return await state.set_state(NewDevice.limit)
+    elif call.data == "wireguard" and user["balance"] < wireguard_price:
         await call.message.edit_text("Недостаточно баланса для создания конфига", reply_markup=user_kb.menu)
         return await state.finish()
 
     await state.update_data(device_type=call.data)
+    await state.set_state(NewDevice.name)
+    await call.message.edit_text("Введите название устройства", reply_markup=user_kb.inline_cancel)
+
+
+@dp.callback_query_handler(user_kb.limit_data.filter(), state=NewDevice.limit)
+async def new_device_limit(call: CallbackQuery, state: FSMContext, callback_data: dict):
+    limit = int(callback_data["value"])
+    user = await db.get_user(call.from_user.id)
+    if user["balance"] < outline_prices[limit]:
+        await call.message.edit_text("Недостаточно баланса для создания конфига", reply_markup=user_kb.menu)
+        return await state.finish()
+    await state.update_data(limit=limit)
     await state.set_state(NewDevice.name)
     await call.message.edit_text("Введите название устройства", reply_markup=user_kb.inline_cancel)
 
@@ -68,12 +80,13 @@ async def new_device_country(call: CallbackQuery, state: FSMContext, callback_da
         price = wireguard_price
     elif data["device_type"] == "outline":
         outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
-        outline_client = outline_manager.create_client(call.from_user.id)
+        outline_client = outline_manager.create_client(call.from_user.id, data["limit"])
         await call.message.answer(outline_client["accessUrl"], reply_markup=user_kb.menu)
         await db.set_outline_id(device_id, outline_client["id"])
-        price = outline_price
+        price = outline_prices[data["limit"]]
 
     await db.update_user_balance(call.from_user.id, -price)
+    await state.finish()
 
 
 @dp.callback_query_handler(user_kb.delete_device.filter())
@@ -119,7 +132,7 @@ async def device_menu(call: CallbackQuery, state: FSMContext, callback_data: dic
         outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
         outline_client = outline_manager.get_client(device["outline_id"])
         if outline_client is None:
-            outline_client = outline_manager.create_client(call.from_user.id)
+            outline_client = outline_manager.create_client(call.from_user.id, 50)
             await db.set_outline_id(device_id, outline_client["id"])
         outline_client_usage = outline_manager.get_usage_data(outline_client["id"])
         usage_gb = outline_client_usage // (1000 ** 3)
@@ -132,14 +145,15 @@ async def device_menu(call: CallbackQuery, state: FSMContext, callback_data: dic
 @dp.callback_query_handler(user_kb.add_limit.filter())
 async def add_limit(call: CallbackQuery, state: FSMContext, callback_data: dict):
     device_id = int(callback_data["device_id"])
+    value = int(callback_data["value"])
     user = await db.get_user(call.from_user.id)
-    if user["balance"] < outline_price:
+    if user["balance"] < outline_prices[value]:
         return await call.message.answer("Недостаточно средств на баланса", reply_markup=user_kb.menu)
     device = await db.get_device(device_id)
     server = await db.get_server(device["server_id"])
     outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
     outline_client = outline_manager.get_client(device["outline_id"])
-    outline_manager.set_data_limit(device["outline_id"], outline_client['dataLimit']['bytes'] + outline_limit)
-    await db.update_user_balance(call.from_user.id, -outline_price)
+    outline_manager.set_data_limit(device["outline_id"], outline_client['dataLimit']['bytes'] // (1000 ** 3) + value)
+    await db.update_user_balance(call.from_user.id, -outline_prices[value])
     await call.message.answer("Лимит успешно увеличен!", reply_markup=user_kb.menu)
     await call.answer()

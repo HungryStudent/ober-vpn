@@ -1,11 +1,19 @@
+from aiogram.types import BotCommand, BotCommandScopeChat
 from aiogram.utils import executor
-from create_bot import dp
+
+from config_parser import ADMINS
+from create_bot import dp, bot
 import database as db
 import handlers
 
 
 async def on_startup(_):
     await db.create_models()
+    await bot.set_my_commands([BotCommand(command='/start', description="Главное меню")])
+    for admin_id in ADMINS:
+        await bot.set_my_commands([BotCommand(command='/start', description="Главное меню"),
+                                   BotCommand(command='/admin', description="Админка")],
+                                  scope=BotCommandScopeChat(admin_id))
 
 
 if __name__ == "__main__":

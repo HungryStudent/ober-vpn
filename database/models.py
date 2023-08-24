@@ -9,7 +9,7 @@ async def create_models():
                        "username VARCHAR(32),"
                        "firstname VARCHAR(64),"
                        "reg_time TIMESTAMP DEFAULT NOW(),"
-                       "balance INTEGER DEFAULT 0,"
+                       "balance REAL DEFAULT 0,"
                        "inviter_id BIGINT,"
                        "is_banned BOOLEAN DEFAULT FALSE,"
                        "is_wireguard_active BOOLEAN DEFAULT TRUE)")
