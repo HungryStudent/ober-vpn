@@ -9,6 +9,7 @@ from config_parser import outline_price, outline_limit, wireguard_price
 from create_bot import dp
 from states.user import NewDevice
 from utils import server as server_utils
+from utils.devices import check_wireguard_active
 
 
 @dp.callback_query_handler(text="devices")
@@ -98,7 +99,7 @@ async def delete_device_action(call: CallbackQuery, state: FSMContext, callback_
         elif device["device_type"] == "outline":
             outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
             outline_manager.delete_client(device["outline_id"])
-
+        await check_wireguard_active(call.from_user.id, call.bot)
     elif action == "cancel":
         await call.message.edit_text("Вы отказались от удаления аккаунта устройства!", reply_markup=user_kb.menu)
 

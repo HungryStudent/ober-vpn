@@ -5,6 +5,7 @@ import database as db
 from config_parser import PAY_TOKEN
 from create_bot import dp
 from keyboards import user as user_kb
+from utils.devices import check_wireguard_active
 
 
 @dp.callback_query_handler(text="balance_menu")
@@ -38,3 +39,4 @@ async def process_successful_payment(message: Message):
     amount = message.successful_payment.total_amount // 100
     await db.update_user_balance(message.from_user.id, amount)
     await message.answer(f"Платеж проведен. На ваш аккаунт зачислено {amount}₽")
+    await check_wireguard_active(call.from_user.id, call.bot)
