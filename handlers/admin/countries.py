@@ -71,6 +71,5 @@ async def delete_country(call: CallbackQuery, state: FSMContext, callback_data: 
         await call.message.answer("В стране есть сервера!")
     else:
         await db.delete_country(country_id)
-        await call.message.answer("Страна удалена")
+        await call.message.edit_text("Страна удалена")
     await call.answer()
-

@@ -26,7 +26,7 @@ async def get_user(user_id):
 
 async def update_user_balance(user_id, balance_diff):
     conn: Connection = await get_conn()
-    await conn.execute("UPDATE users SET balance = balance + $2 WHERE user_id = $1", user_id, balance_diff)
+    await conn.execute("UPDATE users SET balance = round(balance + $2, 2) WHERE user_id = $1", user_id, balance_diff)
 
 
 async def set_is_banned(user_id, status):
