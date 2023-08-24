@@ -35,3 +35,8 @@ async def update_user_balance(user_id, balance_diff):
 async def set_is_banned(user_id, status):
     conn: Connection = await get_conn()
     await conn.execute("UPDATE users SET is_banned = $2 WHERE user_id = $1", user_id, status)
+
+
+async def set_is_wireguard_active(user_id, status):
+    conn: Connection = await get_conn()
+    await conn.execute("UPDATE users SET is_wireguard_active = $2 WHERE user_id = $1", user_id, status)

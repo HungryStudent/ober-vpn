@@ -51,6 +51,13 @@ async def delete_wireguard_config(ip_address, password, device_id):
     await execute_command(cmd, has_resp=True)
 
 
+async def disable_wireguard_config(ip_address, password, device_id):
+    cmd = f'/root/script/mpivpn {ip_address} {password} "pivpn off -y u{device_id}"'
+    await execute_command(cmd, has_resp=True)
+
+async def enable_wireguard_config(ip_address, password, device_id):
+    cmd = f'/root/script/mpivpn {ip_address} {password} "pivpn on -y u{device_id}"'
+    await execute_command(cmd, has_resp=True)
 class Outline:
     def __init__(self, outline_url, outline_sha):
         self.manager = Manager(apiurl=outline_url, apicrt=outline_sha)

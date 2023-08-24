@@ -11,6 +11,12 @@ async def get_devices_by_user_id(user_id):
     return rows
 
 
+async def get_devices_by_user_id_and_device_type(user_id, device_type):
+    conn: Connection = await get_conn()
+    rows = await conn.fetch("SELECT * FROM devices WHERE user_id = $1 AND device_type = $2", user_id, device_type)
+    return rows
+
+
 async def add_new_device(user_id, device_type, name, server_id):
     conn: Connection = await get_conn()
     device_id = await conn.fetchval(

@@ -14,7 +14,8 @@ mailing = InlineKeyboardMarkup(row_width=2).add(
 cancel = ReplyKeyboardMarkup(resize_keyboard=True).add(KeyboardButton("Отмена"))
 
 menu = InlineKeyboardMarkup(row_width=1).add(InlineKeyboardButton("Сервера", callback_data="admin_countries"),
-                                             InlineKeyboardButton("Рассылка", callback_data="mailing"))
+                                             InlineKeyboardButton("Рассылка", callback_data="mailing"),
+                                             InlineKeyboardButton("Статистика", callback_data="statistics"))
 
 
 def get_countries(countries):
