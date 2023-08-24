@@ -46,13 +46,18 @@ async def get_wireguard_config(ip_address, password, device_id):
         img.save(f"u{device_id}.png")
 
 
+async def delete_wireguard_config(ip_address, password, device_id):
+    cmd = f'/root/script/mpivpn {ip_address} {password} "pivpn remove -y u{device_id}"'
+    await execute_command(cmd, has_resp=True)
+
+
 class Outline:
     def __init__(self, outline_url, outline_sha):
         self.manager = Manager(apiurl=outline_url, apicrt=outline_sha)
 
     def create_client(self, user_id):
         client = self.manager.new()
-        self.manager.rename(client["id"], user_id)
+        self.manager.rename(client["id"], str(user_id))
         self.set_data_limit(client["id"], outline_limit)
         return client
 
@@ -69,3 +74,14 @@ class Outline:
     def set_data_limit(self, client_id, limit):
         data = {"limit": {"bytes": limit}}
         requests.put(f"{self.manager.apiurl}/access-keys/{client_id}/data-limit", json=data, verify=False)
+
+    def delete_client(self, client_id):
+        self.manager.delete(client_id)
+
+    def get_usage_data(self, client_id):
+        return self.manager.usage(client_id)
+
+#
+# outline = Outline("https://159.100.9.87:10138/x2_Sz0x9SPqfId0WW2UIvA",
+#                   "DD9F4F1148AF61BFAB394E88CA3A619D1822DECA181583C6EBDCB7DCF57C4CE2")
+# print(outline.set_data_limit(11, 1))

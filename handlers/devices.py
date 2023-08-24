@@ -68,7 +68,7 @@ async def new_device_country(call: CallbackQuery, state: FSMContext, callback_da
         price = wireguard_price
     elif data["device_type"] == "outline":
         outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
-        outline_client = outline_manager.create_client(device_id)
+        outline_client = outline_manager.create_client(call.from_user.id)
         await call.message.answer(outline_client["accessUrl"], reply_markup=user_kb.menu)
         await db.set_outline_id(device_id, outline_client["id"])
         price = outline_price
@@ -88,9 +88,18 @@ async def delete_device(call: CallbackQuery, state: FSMContext, callback_data: d
 async def delete_device_action(call: CallbackQuery, state: FSMContext, callback_data: dict):
     device_id = int(callback_data["device_id"])
     action = callback_data["action"]
+
     if action == "approve":
+        device = await db.get_device(device_id)
+        server = await db.get_server(device["server_id"])
         await db.delete_device(device_id)
         await call.message.edit_text("Устройство удалено", reply_markup=user_kb.menu)
+        if device["device_type"] == "wireguard":
+            await server_utils.delete_wireguard_config(server["ip_address"], server["server_password"], device_id)
+        elif device["device_type"] == "outline":
+            outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
+            outline_manager.delete_client(device["outline_id"])
+
     elif action == "cancel":
         await call.message.edit_text("Вы отказались от удаления аккаунта устройства!", reply_markup=user_kb.menu)
 
@@ -110,7 +119,27 @@ async def device_menu(call: CallbackQuery, state: FSMContext, callback_data: dic
         outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
         outline_client = outline_manager.get_client(device["outline_id"])
         if outline_client is None:
-            outline_client = outline_manager.create_client(device_id)
+            outline_client = outline_manager.create_client(call.from_user.id)
             await db.set_outline_id(device_id, outline_client["id"])
+        outline_client_usage = outline_manager.get_usage_data(outline_client["id"])
+        usage_gb = outline_client_usage // (1000 ** 3)
+        limit_gb = outline_client['dataLimit']['bytes'] // (1000 ** 3)
+        await call.message.answer(f"""Использовано {usage_gb}/{limit_gb}ГБ
+{outline_client['accessUrl']}""", reply_markup=user_kb.get_add_limit(device_id))
+    await call.answer()
 
-        await call.message.answer(outline_client["accessUrl"], reply_markup=user_kb.menu)
+
+@dp.callback_query_handler(user_kb.add_limit.filter())
+async def add_limit(call: CallbackQuery, state: FSMContext, callback_data: dict):
+    device_id = int(callback_data["device_id"])
+    user = await db.get_user(call.from_user.id)
+    if user["balance"] < outline_price:
+        return await call.message.answer("Недостаточно средств на баланса", reply_markup=user_kb.menu)
+    device = await db.get_device(device_id)
+    server = await db.get_server(device["server_id"])
+    outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
+    outline_client = outline_manager.get_client(device["outline_id"])
+    outline_manager.set_data_limit(device["outline_id"], outline_client['dataLimit']['bytes'] + outline_limit)
+    await db.update_user_balance(call.from_user.id, -outline_price)
+    await call.message.answer("Лимит успешно увеличен!", reply_markup=user_kb.menu)
+    await call.answer()

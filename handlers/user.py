@@ -49,3 +49,4 @@ async def ref_menu(call: CallbackQuery, state: FSMContext):
 https://t.me/{BOT_NAME}?start={call.from_user.id}
 
 Когда ваш друг зайдет в наш бот по этой ссылке и создаст аккаунт, вы получите 50₽ на баланс!""")
+    await call.answer()

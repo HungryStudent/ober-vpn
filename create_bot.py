@@ -7,6 +7,7 @@ import logging
 
 from filters.IsAdminFilter import IsAdminFilter
 import urllib3
+import middlewares
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -18,3 +19,4 @@ stor = MemoryStorage()
 bot = Bot(token=TOKEN, parse_mode="HTML")
 dp = Dispatcher(bot, storage=stor)
 dp.filters_factory.bind(IsAdminFilter)
+dp.middleware.setup(middlewares.BanMiddleware())

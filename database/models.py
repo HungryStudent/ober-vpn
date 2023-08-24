@@ -10,7 +10,8 @@ async def create_models():
                        "firstname VARCHAR(64),"
                        "reg_time TIMESTAMP DEFAULT NOW(),"
                        "balance INTEGER DEFAULT 0,"
-                       "inviter_id BIGINT)")
+                       "inviter_id BIGINT,"
+                       "is_banned BOOLEAN DEFAULT FALSE)")
     await conn.execute("CREATE TABLE IF NOT EXISTS countries("
                        "country_id SMALLSERIAL PRIMARY KEY,"
                        "name VARCHAR(32))")

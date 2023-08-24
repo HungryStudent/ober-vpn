@@ -6,6 +6,7 @@ delete_device = CallbackData("delete_device", "device_id")
 delete_device_action = CallbackData("delete_device_action", "device_id", "action")
 new_device_country = CallbackData("new_device_country", "country_id")
 payment = CallbackData("payment", "amount")
+add_limit = CallbackData("add_limit", "device_id")
 
 inline_cancel = InlineKeyboardMarkup(row_width=1).add(InlineKeyboardButton("Отмена", callback_data="cancel"))
 
@@ -46,4 +47,10 @@ def get_delete_device(device_id):
     kb = InlineKeyboardMarkup(row_width=2)
     kb.add(InlineKeyboardButton("Да, удалить", callback_data=delete_device_action.new(device_id, "approve")),
            InlineKeyboardButton("Не удалять", callback_data=delete_device_action.new(device_id, "cancel")))
+    return kb
+
+
+def get_add_limit(device_id):
+    kb = InlineKeyboardMarkup(row_width=1)
+    kb.add(InlineKeyboardButton("Добавить 100ГБ", callback_data=add_limit.new(device_id)))
     return kb
