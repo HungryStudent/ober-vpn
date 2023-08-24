@@ -1,7 +1,4 @@
-import asyncpg
 from asyncpg import Connection
-from asyncpg.exceptions import *
-from config_parser import DB
 from database import get_conn
 
 

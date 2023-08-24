@@ -1,15 +1,14 @@
 import os
 
 from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.filters import Text
 from aiogram.types import Message, CallbackQuery
 
-from states.user import NewDevice
-import keyboards.user as user_kb
-from create_bot import dp
 import database as db
-from utils import server as server_utils
+import keyboards.user as user_kb
 from config_parser import outline_price, outline_limit, wireguard_price
+from create_bot import dp
+from states.user import NewDevice
+from utils import server as server_utils
 
 
 @dp.callback_query_handler(text="devices")

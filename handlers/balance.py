@@ -1,5 +1,6 @@
 from aiogram.dispatcher import FSMContext
 from aiogram.types import CallbackQuery, LabeledPrice, PreCheckoutQuery, Message
+
 import database as db
 from config_parser import PAY_TOKEN
 from create_bot import dp
@@ -36,4 +37,4 @@ async def approve_order(pre_checkout_query: PreCheckoutQuery):
 async def process_successful_payment(message: Message):
     amount = message.successful_payment.total_amount // 100
     await db.update_user_balance(message.from_user.id, amount)
-    await message.answer(f"Платеж проведен. На ваш аккаунт зачислено {message.successful_payment.total_amount}₽")
+    await message.answer(f"Платеж проведен. На ваш аккаунт зачислено {amount}₽")

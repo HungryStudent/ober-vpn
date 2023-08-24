@@ -1,11 +1,9 @@
 from aiogram.types import Message, CallbackQuery
-from aiogram.dispatcher import FSMContext
 
-import keyboards.admin as admin_kb
-from states.admin import Mailing, CreateCountry
-from create_bot import dp
-import asyncio
 import database as db
+import keyboards.admin as admin_kb
+from create_bot import dp
+from states.admin import CreateCountry
 
 
 @dp.callback_query_handler(is_admin=True, text="admin_countries")

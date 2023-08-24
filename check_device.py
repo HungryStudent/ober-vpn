@@ -1,15 +1,17 @@
 import asyncio
 
 import database as db
+import utils.server as server_utils
 from config_parser import wireguard_price
 from create_bot import bot
 from keyboards import user as user_kb
-import utils.server as server_utils
 
 
 async def main():
     users = await db.get_users()
     for user in users:
+        if not user["is_wireguard_active"]:
+            continue
         devices = await db.get_devices_by_user_id_and_device_type(user["user_id"], "wireguard")
         if not devices:
             return
@@ -24,6 +26,10 @@ async def main():
                 server = await db.get_server(device["server_id"])
                 await server_utils.disable_wireguard_config(server["ip_address"], server["server_password"],
                                                             device["device_id"])
+        else:
+            await db.update_user_balance(user["user_id"], -amount)
+        session = await bot.get_session()
+        await session.close()
 
 
 if __name__ == '__main__':

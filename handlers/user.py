@@ -1,11 +1,10 @@
 from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.filters import Text
 from aiogram.types import Message, CallbackQuery
 
+import database as db
 import keyboards.user as user_kb
 from config_parser import BOT_NAME
 from create_bot import dp
-import database as db
 
 
 @dp.message_handler(commands=['start'], state="*")

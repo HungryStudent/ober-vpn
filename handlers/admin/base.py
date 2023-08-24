@@ -1,11 +1,10 @@
-from aiogram.types import Message, CallbackQuery
 from aiogram.dispatcher import FSMContext
+from aiogram.types import Message, CallbackQuery
 
-import keyboards.admin as admin_kb
-from states.admin import Mailing
-from create_bot import dp
-import asyncio
 import database as db
+import keyboards.admin as admin_kb
+from create_bot import dp
+
 
 @dp.message_handler(is_admin=True, commands="admin", state="*")
 async def admin_menu(message: Message, state: FSMContext):
