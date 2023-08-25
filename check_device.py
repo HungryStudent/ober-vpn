@@ -14,7 +14,7 @@ async def main():
             continue
         devices = await db.get_devices_by_user_id_and_device_type(user["user_id"], "wireguard")
         if not devices:
-            return
+            continue
         amount = len(devices) * wireguard_price
         if user["balance"] < amount:
             await db.set_is_wireguard_active(user["user_id"], False)
