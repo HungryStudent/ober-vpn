@@ -29,7 +29,10 @@ async def start_command(message: Message, state: FSMContext):
                                  inviter_id)
     devices = await db.get_devices_by_user_id_and_device_type(user["user_id"], "wireguard")
     amount = len(devices) * wireguard_price
-    days = float(user["balance"]) // amount
+    try:
+        days = float(user["balance"]) // amount
+    except ZeroDivisionError:
+        days = 0
     await message.answer(f"""Приветствие, ваш баланс: {user['balance']}₽ (~{days} дней)""", reply_markup=user_kb.menu)
 
 
