@@ -17,7 +17,8 @@ menu = InlineKeyboardMarkup(row_width=2).add(
     InlineKeyboardButton("Пригласить", callback_data="ref_menu"),
     InlineKeyboardButton("Мои устройства", callback_data="devices"),
     InlineKeyboardButton("Помощь", callback_data="help"),
-    InlineKeyboardButton("Пополнить баланс", callback_data="balance_menu")
+    InlineKeyboardButton("Пополнить баланс", callback_data="balance_menu"),
+    InlineKeyboardButton("История платежей", callback_data="history")
 )
 
 choose_device_type = InlineKeyboardMarkup(row_width=2).add(
@@ -38,7 +39,9 @@ limit = InlineKeyboardMarkup(row_width=2).add(
 def get_devices(devices):
     kb = InlineKeyboardMarkup(row_width=2)
     for my_device in devices:
-        kb.add(InlineKeyboardButton(f"{my_device['name']} ({my_device['device_type']})", callback_data=device.new(my_device["device_id"])),
+        device_type = "(WG)" if my_device["device_type"] == "wireguard" else "(OL)"
+        kb.add(InlineKeyboardButton(f"{device_type} {my_device['name']}",
+                                    callback_data=device.new(my_device["device_id"])),
                InlineKeyboardButton("❌ Удалить", callback_data=delete_device.new(my_device["device_id"])))
     kb.add(InlineKeyboardButton("Добавить устройство", callback_data="new_device"))
     return kb

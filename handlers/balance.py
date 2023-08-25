@@ -38,5 +38,6 @@ async def approve_order(pre_checkout_query: PreCheckoutQuery):
 async def process_successful_payment(message: Message):
     amount = message.successful_payment.total_amount // 100
     await db.update_user_balance(message.from_user.id, amount)
+    await db.add_history_record(message.from_user.id, amount, "Пополнение")
     await message.answer(f"Платеж проведен. На ваш аккаунт зачислено {amount}₽")
     await check_wireguard_active(call.from_user.id, call.bot)

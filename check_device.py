@@ -28,6 +28,7 @@ async def main():
                                                             device["device_id"])
         else:
             await db.update_user_balance(user["user_id"], -amount)
+            await db.add_history_record(user["user_id"], amount, "Оплата конфигов")
         session = await bot.get_session()
         await session.close()
 

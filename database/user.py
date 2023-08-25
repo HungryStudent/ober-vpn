@@ -4,10 +4,11 @@ from database import get_conn
 
 async def add_user(user_id, username, firstname, inviter_id):
     conn: Connection = await get_conn()
-    await conn.execute(
-        "INSERT INTO users(user_id, username, firstname, inviter_id) VALUES ($1, $2, $3, $4)",
+    row = await conn.fetchrow(
+        "INSERT INTO users(user_id, username, firstname, inviter_id) VALUES ($1, $2, $3, $4) RETURNING *",
         user_id, username, firstname, inviter_id)
     await conn.close()
+    return row
 
 
 async def get_users():

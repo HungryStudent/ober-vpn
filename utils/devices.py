@@ -15,6 +15,7 @@ async def check_wireguard_active(user_id, bot: Bot):
         amount = len(devices) * wireguard_price
         if user["balance"] > amount:
             await db.update_user_balance(user_id, -amount)
+            await db.add_history_record(user_id, amount, "Оплата конфигов")
             for device in devices:
                 server = await db.get_server(device["server_id"])
                 await server_utils.enable_wireguard_config(server["ip_address"], server["server_password"],

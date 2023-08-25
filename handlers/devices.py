@@ -34,9 +34,6 @@ async def new_device_device_type(call: CallbackQuery, state: FSMContext):
     if call.data == "outline":
         await call.message.edit_text("Выберите трафик:", reply_markup=user_kb.limit)
         return await state.set_state(NewDevice.limit)
-    elif call.data == "wireguard" and user["balance"] < wireguard_price:
-        await call.message.edit_text("Недостаточно баланса для создания конфига", reply_markup=user_kb.menu)
-        return await state.finish()
 
     await state.update_data(device_type=call.data)
     await state.set_state(NewDevice.name)
@@ -77,7 +74,7 @@ async def new_device_country(call: CallbackQuery, state: FSMContext, callback_da
         await call.message.answer_document(open(f"u{device_id}.conf", "rb"), reply_markup=user_kb.menu)
         os.remove(f"u{device_id}.png")
         os.remove(f"u{device_id}.conf")
-        price = wireguard_price
+        price = 0
     elif data["device_type"] == "outline":
         outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
         outline_client = outline_manager.create_client(call.from_user.id, data["limit"])
@@ -86,6 +83,7 @@ async def new_device_country(call: CallbackQuery, state: FSMContext, callback_da
         price = outline_prices[data["limit"]]
 
     await db.update_user_balance(call.from_user.id, -price)
+    await db.add_history_record(call.from_user.id, price, "Создание конфига")
     await state.finish()
 
 
@@ -155,5 +153,6 @@ async def add_limit(call: CallbackQuery, state: FSMContext, callback_data: dict)
     outline_client = outline_manager.get_client(device["outline_id"])
     outline_manager.set_data_limit(device["outline_id"], outline_client['dataLimit']['bytes'] // (1000 ** 3) + value)
     await db.update_user_balance(call.from_user.id, -outline_prices[value])
+    await db.add_history_record(call.from_user.id, -outline_prices[value], "Продление лимита")
     await call.message.answer("Лимит успешно увеличен!", reply_markup=user_kb.menu)
     await call.answer()

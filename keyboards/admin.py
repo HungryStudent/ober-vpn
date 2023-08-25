@@ -49,7 +49,7 @@ def get_server(server):
     kb.add(InlineKeyboardButton("Сделать основным", callback_data=set_default_server.new(server["server_id"])))
     kb.add(InlineKeyboardButton("Изменить IP", callback_data=change_server.new(server["server_id"], "ip")))
     kb.add(InlineKeyboardButton("Изменить пароль",
-                                callback_data=change_server.new(server["server_id"], "server_password")))
+                                callback_data=change_server.new(server["server_id"], "password")))
     kb.add(InlineKeyboardButton("Назад", callback_data=admin_country.new(server["country_id"])))
     return kb
 

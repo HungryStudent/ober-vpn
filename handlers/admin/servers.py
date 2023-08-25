@@ -82,7 +82,7 @@ async def change_server_start(call: CallbackQuery, state: FSMContext, callback_d
     server_id = callback_data["server_id"]
     field = callback_data["field"]
     if field == "password":
-        await call.message.answer("Введите новый пароль")
+        await call.message.answer("Введите новый пароль", reply_markup=admin_kb.cancel)
     await state.set_state(ChangeServer.new_value)
     await state.update_data(
         server_id=server_id,

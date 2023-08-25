@@ -9,7 +9,7 @@ async def create_models():
                        "username VARCHAR(32),"
                        "firstname VARCHAR(64),"
                        "reg_time TIMESTAMP DEFAULT NOW(),"
-                       "balance NUMERIC DEFAULT 0,"
+                       "balance NUMERIC DEFAULT 100,"
                        "inviter_id BIGINT,"
                        "is_banned BOOLEAN DEFAULT FALSE,"
                        "is_wireguard_active BOOLEAN DEFAULT TRUE)")
@@ -31,4 +31,10 @@ async def create_models():
                        "name VARCHAR(64),"
                        "server_id SMALLINT REFERENCES servers (server_id),"
                        "outline_id VARCHAR(10))")
+    await conn.execute("CREATE TABLE IF NOT EXISTS history("
+                       "record_id BIGSERIAL PRIMARY KEY,"
+                       "user_id BIGINT REFERENCES users (user_id),"
+                       "datetime TIMESTAMP,"
+                       "amount INTEGER,"
+                       "msg VARCHAR(126))")
     await conn.close()
