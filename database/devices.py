@@ -36,4 +36,12 @@ async def delete_device(device_id):
 async def get_device(device_id):
     conn: Connection = await get_conn()
     row = await conn.fetchrow("SELECT * FROM devices WHERE device_id = $1", device_id)
+    await conn.close()
     return row
+
+
+async def get_devices_by_server_id(server_id):
+    conn: Connection = await get_conn()
+    rows = await conn.fetch("SELECT * FROM devices WHERE server_id = $1", server_id)
+    await conn.close()
+    return rows

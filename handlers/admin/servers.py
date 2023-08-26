@@ -108,3 +108,33 @@ async def set_default_server(call: CallbackQuery, state: FSMContext, callback_da
     server = await db.get_server(server_id)
     await db.set_default_server(server["country_id"], server_id)
     await call.message.answer("Сервер установлен как основной")
+
+
+@dp.callback_query_handler(admin_kb.delete_server.filter())
+async def delete_server(call: CallbackQuery, state: FSMContext, callback_data: dict):
+    server_id = int(callback_data["server_id"])
+    await call.message.edit_text("Вы действительно хотите удалить сервер?",
+                                 reply_markup=admin_kb.get_delete_server(server_id))
+    await call.answer()
+
+
+@dp.callback_query_handler(admin_kb.delete_server_action.filter())
+async def delete_server_action(call: CallbackQuery, state: FSMContext, callback_data: dict):
+    server_id = int(callback_data["server_id"])
+    action = callback_data["action"]
+
+    if action == "approve":
+        devices = await db.get_devices_by_server_id(server_id)
+        server = await db.get_server(server_id)
+        for device in devices:
+            await db.delete_device(device["device_id"])
+            if device["device_type"] == "wireguard":
+                await server_utils.delete_wireguard_config(server["ip_address"], server["server_password"],
+                                                           device["device_id"])
+            elif device["device_type"] == "outline":
+                outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
+                outline_manager.delete_client(device["outline_id"])
+        await db.delete_server(server_id)
+        await call.message.edit_text("Сервер удалён")
+    elif action == "cancel":
+        await call.message.edit_text("Вы отказались от удаления сервера!", reply_markup=admin_kb.menu)

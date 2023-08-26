@@ -52,3 +52,7 @@ async def get_current_server_by_country_id(country_id):
     row = await conn.fetchrow("SELECT * from servers WHERE country_id = $1 and is_current = TRUE", country_id)
     await conn.close()
     return row
+
+async def delete_server(server_id):
+    conn: Connection = await get_conn()
+    await conn.execute("DELETE FROM servers WHERE server_id = $1", server_id)

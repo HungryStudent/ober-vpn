@@ -7,6 +7,8 @@ admin_country = CallbackData("admin_country", "country_id")
 change_country = CallbackData("change_country", "country_id", "field")
 delete_country = CallbackData("delete_country", "country_id")
 admin_server = CallbackData("admin_server", "server_id")
+delete_server = CallbackData("delete_server", "server_id")
+delete_server_action = CallbackData("delete_server_action", "server_id", "action")
 set_default_server = CallbackData("set_default_server", "server_id")
 change_server = CallbackData("change_server", "server_id", "field")
 create_server = CallbackData("create_server", "country_id")
@@ -47,10 +49,17 @@ def get_country(country, servers):
 def get_server(server):
     kb = InlineKeyboardMarkup(row_width=1)
     kb.add(InlineKeyboardButton("Сделать основным", callback_data=set_default_server.new(server["server_id"])))
-    kb.add(InlineKeyboardButton("Изменить IP", callback_data=change_server.new(server["server_id"], "ip")))
     kb.add(InlineKeyboardButton("Изменить пароль",
                                 callback_data=change_server.new(server["server_id"], "password")))
+    kb.add(InlineKeyboardButton("Удалить сервер", callback_data=delete_server.new(server["server_id"])))
     kb.add(InlineKeyboardButton("Назад", callback_data=admin_country.new(server["country_id"])))
+    return kb
+
+
+def get_delete_server(server_id):
+    kb = InlineKeyboardMarkup(row_width=2)
+    kb.add(InlineKeyboardButton("Да, удалить", callback_data=delete_server_action.new(server_id, "approve")),
+           InlineKeyboardButton("Не удалять", callback_data=delete_server_action.new(server_id, "cancel")))
     return kb
 
 
