@@ -1,4 +1,4 @@
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.callback_data import CallbackData
 
 from config_parser import outline_prices
@@ -65,4 +65,10 @@ def get_add_limit(device_id):
     kb = InlineKeyboardMarkup(row_width=1)
     for price in outline_prices:
         kb.add(InlineKeyboardButton(f"Добавить {price}ГБ", callback_data=add_limit.new(device_id, price)))
+    return kb
+
+
+def get_payment_url(url):
+    kb = InlineKeyboardMarkup(row_width=1)
+    kb.add(InlineKeyboardButton("Оплатить", url=url))
     return kb

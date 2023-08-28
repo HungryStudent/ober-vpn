@@ -8,7 +8,8 @@ outline_prices = {int(price.split("|")[0]): int(price.split("|")[1]) for price i
 outline_limit = int(config["settings"]["outline_limit"])
 wireguard_price = float(config["settings"]["wireguard_price"])
 BOT_NAME = config["settings"]["BOT_NAME"]
-PAY_TOKEN = config["settings"]["PAY_TOKEN"]
+YOOKASSA_TOKEN = config["settings"]["YOOKASSA_TOKEN"]
+YOOKASSA_SHOP_ID = int(config["settings"]["YOOKASSA_SHOP_ID"])
 
 
 class DB:
