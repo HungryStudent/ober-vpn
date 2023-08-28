@@ -11,7 +11,7 @@ app = FastAPI()
 @app.post('/api/pay/yookassa')
 async def yookassa_request(request: Request):
     data = await request.json()
-    amount = int(data["object"]["amount"]["value"])
+    amount = int(float(data["object"]["amount"]["value"]))
     user_id = int(float(data["object"]["metadata"]["user_id"]))
     await db.update_user_balance(user_id, amount)
     await db.add_history_record(user_id, amount, "Пополнение")
