@@ -15,7 +15,7 @@ async def yookassa_request(request: Request):
     user_id = int(float(data["object"]["metadata"]["user_id"]))
     await db.update_user_balance(user_id, amount)
     await db.add_history_record(user_id, amount, "Пополнение")
-    await bot.send_message(f"Платеж проведен. На ваш аккаунт зачислено {amount}₽")
+    await bot.send_message(user_id, f"Платеж проведен. На ваш аккаунт зачислено {amount}₽")
     await check_wireguard_active(call.from_user.id, call.bot)
     return 200
 
