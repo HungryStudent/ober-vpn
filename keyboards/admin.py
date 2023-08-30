@@ -14,6 +14,7 @@ change_server = CallbackData("change_server", "server_id", "field")
 create_server = CallbackData("create_server", "country_id")
 admin_device = CallbackData("admin_device", "device_id")
 admin_add_limit = CallbackData("admin_add_limit", "device_id", "value")
+ban_user = CallbackData("ban_user", "user_id", "action")
 
 mailing = InlineKeyboardMarkup(row_width=2).add(
     InlineKeyboardButton("Да, начать рассылку", callback_data="start_mailing"),
@@ -24,7 +25,9 @@ cancel = ReplyKeyboardMarkup(resize_keyboard=True).add(KeyboardButton("Отме�
 menu = InlineKeyboardMarkup(row_width=1).add(InlineKeyboardButton("Сервера", callback_data="admin_countries"),
                                              InlineKeyboardButton("Рассылка", callback_data="mailing"),
                                              InlineKeyboardButton("Статистика", callback_data="statistics"),
-                                             InlineKeyboardButton("Конфиги", callback_data="admin_devices"))
+                                             InlineKeyboardButton("Конфиги", callback_data="admin_devices"),
+                                             InlineKeyboardButton("Бан/Разбан", callback_data="admin_ban"),
+                                             InlineKeyboardButton("Изменить баланс", callback_data="admin_balance"))
 
 
 def get_countries(countries):
@@ -76,4 +79,11 @@ def get_add_limit(device_id):
     kb = InlineKeyboardMarkup(row_width=1)
     for price in outline_prices:
         kb.add(InlineKeyboardButton(f"Добавить {price}ГБ", callback_data=admin_add_limit.new(device_id, price)))
+    return kb
+
+
+def get_ban(user_id, action):
+    kb = InlineKeyboardMarkup(row_width=1)
+    ban_text = {"ban": "Заблокировать", "unban": "Разблокировать"}
+    kb.add(InlineKeyboardButton(ban_text[action], callback_data=ban_user.new(user_id, action)))
     return kb

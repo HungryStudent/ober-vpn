@@ -24,3 +24,12 @@ class ChangeCountry(StatesGroup):
 
 class FindDevices(StatesGroup):
     user_id = State()
+
+
+class BanUser(StatesGroup):
+    user_id = State()
+
+
+class ChangeBalanceUser(StatesGroup):
+    user_id = State()
+    amount = State()
