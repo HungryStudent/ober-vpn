@@ -13,9 +13,6 @@ def create_payment(amount, user_id) -> PaymentResponse:
             "currency": "RUB"
         },
         "capture": True,
-        "payment_method_data": {
-            "type": "bank_card"
-        },
         "confirmation": {
             "type": "redirect",
             "return_url": f"https://t.me/{BOT_NAME}"

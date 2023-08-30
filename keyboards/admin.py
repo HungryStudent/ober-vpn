@@ -23,7 +23,8 @@ cancel = ReplyKeyboardMarkup(resize_keyboard=True).add(KeyboardButton("Отме�
 
 menu = InlineKeyboardMarkup(row_width=1).add(InlineKeyboardButton("Сервера", callback_data="admin_countries"),
                                              InlineKeyboardButton("Рассылка", callback_data="mailing"),
-                                             InlineKeyboardButton("Статистика", callback_data="statistics"))
+                                             InlineKeyboardButton("Статистика", callback_data="statistics"),
+                                             InlineKeyboardButton("Конфиги", callback_data="admin_devices"))
 
 
 def get_countries(countries):

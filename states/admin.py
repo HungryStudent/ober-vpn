@@ -20,3 +20,7 @@ class ChangeServer(StatesGroup):
 
 class ChangeCountry(StatesGroup):
     new_value = State()
+
+
+class FindDevices(StatesGroup):
+    user_id = State()

@@ -6,20 +6,29 @@ from aiogram.types import Message, CallbackQuery
 import database as db
 import keyboards.admin as admin_kb
 from create_bot import dp
-from states.admin import CreateCountry, ChangeCountry
+from states.admin import FindDevices
 from utils import server as server_utils
 
 
-@dp.message_handler(is_admin=True, commands="devices")
+@dp.callback_query_handler(is_admin=True, text="admin_devices")
+async def admin_devices(call: CallbackQuery, state: FSMContext):
+    await call.message.answer("Введите user_id", reply_markup=admin_kb.cancel)
+    await state.set_state(FindDevices.user_id)
+    await call.answer()
+
+
+@dp.message_handler(is_admin=True, state=FindDevices.user_id)
 async def get_client_devices(message: Message, state: FSMContext):
     try:
-        user_id = int(message.get_args())
+        user_id = int(message.text)
     except ValueError:
         return await message.answer("Неверный user_id")
     devices = await db.get_devices_by_user_id(user_id)
     if len(devices) == 0:
-        return await message.answer("У данного пользователя нет устройств")
+        await state.finish()
+        return await message.answer("У данного пользователя нет устройств", reply_markup=admin_kb.menu)
     await message.answer(f"Устройства пользователя {user_id}:", reply_markup=admin_kb.get_devices(devices))
+    await state.finish()
 
 
 @dp.callback_query_handler(admin_kb.admin_device.filter())
