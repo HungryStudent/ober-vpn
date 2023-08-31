@@ -10,6 +10,7 @@ new_device_country = CallbackData("new_device_country", "country_id")
 payment = CallbackData("payment", "amount")
 add_limit = CallbackData("add_limit", "device_id", "value")
 limit_data = CallbackData("limit", "value")
+help_post = CallbackData("help_post", "post")
 
 inline_cancel = InlineKeyboardMarkup(row_width=1).add(InlineKeyboardButton("Отмена", callback_data="cancel"))
 
@@ -34,6 +35,9 @@ limit = InlineKeyboardMarkup(row_width=2).add(
     *[InlineKeyboardButton(f"{amount}", callback_data=limit_data.new(amount))
       for (amount, price) in outline_prices.items()]
 )
+
+support = InlineKeyboardMarkup(row_width=1).add(
+    InlineKeyboardButton("Инструкция по установке", callback_data=help_post.new("install")))
 
 
 def get_devices(devices):

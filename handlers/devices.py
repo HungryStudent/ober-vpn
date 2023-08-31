@@ -5,7 +5,7 @@ from aiogram.types import Message, CallbackQuery
 
 import database as db
 import keyboards.user as user_kb
-from config_parser import outline_prices, outline_limit, wireguard_price
+from config_parser import outline_prices
 from create_bot import dp
 from states.user import NewDevice
 from utils import server as server_utils
