@@ -9,6 +9,7 @@ delete_device_action = CallbackData("delete_device_action", "device_id", "action
 new_device_country = CallbackData("new_device_country", "country_id")
 payment = CallbackData("payment", "amount")
 add_limit = CallbackData("add_limit", "device_id", "value")
+accept_add_limit = CallbackData("accept_add_limit", "device_id", "value")
 limit_data = CallbackData("limit", "value")
 help_post = CallbackData("help_post", "post")
 
@@ -77,8 +78,15 @@ def get_delete_device(device_id):
 
 def get_add_limit(device_id):
     kb = InlineKeyboardMarkup(row_width=1)
-    for price in outline_prices:
-        kb.add(InlineKeyboardButton(f"Добавить {price}ГБ", callback_data=add_limit.new(device_id, price)))
+    for (amount, price) in outline_prices.items():
+        kb.add(InlineKeyboardButton(f"{amount} ГБ: {price} руб", callback_data=add_limit.new(device_id, amount)))
+    return kb
+
+
+def get_accept_add_limit(device_id, amount):
+    kb = InlineKeyboardMarkup(row_width=1)
+    kb.add(InlineKeyboardButton("Да, добавить", callback_data=accept_add_limit.new(device_id, amount)),
+           InlineKeyboardButton("Нет, добавлять", callback_data=accept_add_limit.new(device_id, 0)))
     return kb
 
 

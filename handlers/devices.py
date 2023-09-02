@@ -24,7 +24,7 @@ instructions = {
 4.Выберите "Импорт" и найдите скачанный конфиг-файл в папке в который был скачан файл
 
 В случае iOS,iPadOS:
-2.Нажмите на конфиг-файл (имя вида "*.conf") выше в чате
+2.Нажмите на конфиг-файл (имя вида "*.conf") ниже в чате
 3.Нажмите кнопку "Поделиться"
 4.Из списка программ выберите WireGuard
 
@@ -142,25 +142,27 @@ async def new_device_country(call: CallbackQuery, state: FSMContext, callback_da
     device_id = await db.add_new_device(call.from_user.id, data["device_type"], data["name"], server["server_id"])
     await call.message.edit_text("Девайс успешно создан", reply_markup=user_kb.show_menu)
     price = 0
+    await call.message.answer(instructions[data["device_type"]], disable_web_page_preview=True)
     if data["device_type"] == "wireguard":
         await server_utils.create_wireguard_config(server["ip_address"], server["server_password"], device_id)
         await server_utils.get_wireguard_config(server["ip_address"], server["server_password"], device_id,
                                                 call.from_user.id)
         await call.message.answer_photo(open(f"OberVPN_{call.from_user.id}_{device_id}.png", "rb"))
-        await call.message.answer_document(open(f"OberVPN_{call.from_user.id}_{device_id}.conf", "rb"))
+        await call.message.answer_document(open(f"OberVPN_{call.from_user.id}_{device_id}.conf", "rb"),
+                                           reply_markup=user_kb.show_menu)
         os.remove(f"OberVPN_{call.from_user.id}_{device_id}.png")
         os.remove(f"OberVPN_{call.from_user.id}_{device_id}.conf")
         price = 0
     elif data["device_type"] == "outline":
         outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
         outline_client = outline_manager.create_client(call.from_user.id, data["limit"])
-        await call.message.answer(outline_client["accessUrl"])
+        await call.message.answer(outline_client["accessUrl"],
+                                  reply_markup=user_kb.show_menu)
         await db.set_outline_id(device_id, outline_client["id"])
         price = outline_prices[data["limit"]]
     await db.update_user_balance(call.from_user.id, -price)
     await db.add_history_record(call.from_user.id, price, "Создание конфига")
-    await call.message.answer(instructions[data["device_type"]], disable_web_page_preview=True,
-                              reply_markup=user_kb.show_menu)
+
     await state.finish()
 
 
@@ -209,11 +211,13 @@ async def device_menu(call: CallbackQuery, state: FSMContext, callback_data: dic
     device_id = int(callback_data["device_id"])
     device = await db.get_device(device_id)
     server = await db.get_server(device["server_id"])
+    await call.message.answer(instructions[device["device_type"]], disable_web_page_preview=True)
     if device["device_type"] == "wireguard":
         await server_utils.get_wireguard_config(server["ip_address"], server["server_password"], device_id,
                                                 call.from_user.id)
         await call.message.answer_photo(open(f"OberVPN_{call.from_user.id}_{device_id}.png", "rb"))
-        await call.message.answer_document(open(f"OberVPN_{call.from_user.id}_{device_id}.conf", "rb"))
+        await call.message.answer_document(open(f"OberVPN_{call.from_user.id}_{device_id}.conf", "rb"),
+                                           reply_markup=user_kb.show_menu)
         os.remove(f"OberVPN_{call.from_user.id}_{device_id}.png")
         os.remove(f"OberVPN_{call.from_user.id}_{device_id}.conf")
     elif device["device_type"] == "outline":
@@ -227,13 +231,20 @@ async def device_menu(call: CallbackQuery, state: FSMContext, callback_data: dic
         limit_gb = outline_client['dataLimit']['bytes'] // (1000 ** 3)
         await call.message.answer(f"""Использовано {usage_gb}/{limit_gb}ГБ
 {outline_client['accessUrl']}""", reply_markup=user_kb.get_add_limit(device_id))
-    await call.message.answer(instructions[device["device_type"]], disable_web_page_preview=True,
-                              reply_markup=user_kb.show_menu)
+
     await call.answer()
 
 
 @dp.callback_query_handler(user_kb.add_limit.filter())
 async def add_limit(call: CallbackQuery, state: FSMContext, callback_data: dict):
+    device_id = int(callback_data["device_id"])
+    value = int(callback_data["value"])
+    await call.message.answer("Вы действительно хотите увеличить трафик?",
+                              reply_markup=user_kb.get_accept_add_limit(device_id, value))
+
+
+@dp.callback_query_handler(user_kb.accept_add_limit.filter())
+async def accept_add_limit(call: CallbackQuery, state: FSMContext, callback_data: dict):
     device_id = int(callback_data["device_id"])
     value = int(callback_data["value"])
     user = await db.get_user(call.from_user.id)
