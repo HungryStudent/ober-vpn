@@ -15,7 +15,7 @@ from utils.devices import check_wireguard_active
 instructions = {
     "wireguard": """Инструкция для настройки WireGuard на Вашем устройстве:
 1.Скачайте WireGuard из 
-   App Store(IOS,MacOS,iPadOS) — ссылка (после нажатия на текст «ссылка» открывать ссылку, Если ios или iPadOS [https://itunes.apple.com/us/app/wireguard/id1441195209?ls=1&mt=8], Если  MacOS [https://itunes.apple.com/us/app/wireguard/id1451685025?ls=1&mt=12]  )
+   App Store(IOS,MacOS,iPadOS) — <a href='https://itunes.apple.com/us/app/wireguard/id1441195209?ls=1&mt=8'>ссылка</a>
    Google Play(Android) — <a href='https://play.google.com/store/apps/details?id=com.wireguard.android'>ссылка</a>
 или
    с официального сайта —  <a href='https://www.wireguard.com/install/'>ссылка</a>
@@ -35,7 +35,7 @@ instructions = {
 Обратите внимание: Один QR-код или конфиг-файл может быть использован только на одном устройстве!""",
     "outline": """Инструкция для настройки Outline на Вашем устройстве:
 1.Скачайте Outline из 
-   App Store(IOS,MacOS,iPadOS) — <a href='ссылка (после нажатия на текст «ссылка» открывать ссылку, Если ios или iPadOS [https://itunes.apple.com/us/app/outline-app/id1356177741], Если  MacOS [https://itunes.apple.com/us/app/outline-app/id1356178125]  )
+   App Store(IOS,MacOS,iPadOS) — <a href='https://itunes.apple.com/us/app/outline-app/id1356177741'>ссылка</a>
    Google Play(Android) — <a href='https://play.google.com/store/apps/details?id=org.outline.android.client'>ссылка</a>
 или
    с официального сайта (Скачайте Outline client)  —  <a href='https://getoutline.org/get-started/'>ссылка</a>)
