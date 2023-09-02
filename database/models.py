@@ -31,7 +31,9 @@ async def create_models():
                        "device_type VARCHAR(9),"
                        "name VARCHAR(64),"
                        "server_id SMALLINT REFERENCES servers (server_id),"
-                       "outline_id VARCHAR(10))")
+                       "outline_id VARCHAR(10),"
+                       "has_first_payment BOOLEAN DEFAULT FALSE,"
+                       "create_time TIMESTAMP DEFAULT NOW())")
     await conn.execute("CREATE TABLE IF NOT EXISTS history("
                        "record_id BIGSERIAL PRIMARY KEY,"
                        "user_id BIGINT REFERENCES users (user_id),"

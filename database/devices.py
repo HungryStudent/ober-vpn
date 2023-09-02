@@ -46,3 +46,18 @@ async def get_devices_by_server_id(server_id):
     rows = await conn.fetch("SELECT * FROM devices WHERE server_id = $1", server_id)
     await conn.close()
     return rows
+
+
+async def get_wireguard_devices_for_payment(user_id):
+    conn: Connection = await get_conn()
+    rows = await conn.fetch("SELECT * FROM devices WHERE user_id = $1 "
+                            "and has_first_payment = False "
+                            "or (has_first_payment = True and extract(epoch from NOW() - create_time)/3600 > 24)",
+                            user_id)
+    await conn.close()
+    return rows
+
+
+async def set_devices_has_first_payment(user_id):
+    conn: Connection = await get_conn()
+    await conn.execute("UPDATE devices SET has_first_payment = True where user_id = $1", user_id)

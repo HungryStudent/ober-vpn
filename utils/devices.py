@@ -32,11 +32,33 @@ async def get_stats_for_menu(user):
         days = 0
     if user["is_wireguard_active"]:
         wireguard_status = "активен"
-        wireguard_desc = "списание ежедневное"
+        wireguard_desc = ""
     else:
         wireguard_status = "не активен"
-        wireguard_desc = "недостаточно средств"
+        wireguard_desc = "(недостаточно средств)"
     if len(devices) == 0:
         wireguard_status = "не активен"
-        wireguard_desc = "нет конфигов"
-    return {"days": days, "wireguard_status": wireguard_status, "wireguard_desc": wireguard_desc}
+        wireguard_desc = "(нет конфигов)"
+
+    devices = await db.get_devices_by_user_id_and_device_type(user["user_id"], "outline")
+    outline_status = "не активен"
+    outline_desc = "(закончился трафик)"
+    if len(devices) == 0:
+        outline_status = "не активен"
+        outline_desc = "(нет ключей)"
+    else:
+        for device in devices:
+            server = await db.get_server(device["server_id"])
+            outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
+            outline_client = outline_manager.get_client(device["outline_id"])
+            outline_client_usage = outline_manager.get_usage_data(outline_client["id"])
+            usage_gb = outline_client_usage // (1000 ** 3)
+            limit_gb = outline_client['dataLimit']['bytes'] // (1000 ** 3)
+            if usage_gb >= limit_gb:
+                outline_status = "активен"
+                outline_desc = ""
+
+    return {
+        "days": days, "wireguard_status": wireguard_status, "wireguard_desc": wireguard_desc,
+        "outline_status": outline_status, "outline_desc": outline_desc
+            }

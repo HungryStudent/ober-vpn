@@ -16,15 +16,15 @@ inline_cancel = InlineKeyboardMarkup(row_width=1).add(InlineKeyboardButton("От
 
 start = InlineKeyboardMarkup(row_width=1).add(InlineKeyboardButton("🎉 ПОДКЛЮЧИТЬ VPN 🎉", callback_data="start_vpn"))
 
-show_menu = InlineKeyboardMarkup(row_width=1).add(InlineKeyboardButton("Главное меню", callback_data="show_menu"))
+show_menu = InlineKeyboardMarkup(row_width=1).add(InlineKeyboardButton("🏠Главное меню", callback_data="show_menu"))
 
 menu = InlineKeyboardMarkup(row_width=2).add(
-    InlineKeyboardButton("Мои устройства", callback_data="devices"),
-    InlineKeyboardButton("Пополнить баланс", callback_data="balance_menu"),
-    InlineKeyboardButton("Пригласить друга", callback_data="ref_menu"),
+    InlineKeyboardButton("📱Мои устройства", callback_data="devices"),
+    InlineKeyboardButton("💵Пополнить баланс", callback_data="balance_menu"),
+    InlineKeyboardButton("👨‍⚕Пригласить друга", callback_data="ref_menu"),
     # InlineKeyboardButton("Помощь", callback_data="help"),
 
-).add(InlineKeyboardButton("История платежей", callback_data="history"))
+).add(InlineKeyboardButton("🧾История платежей", callback_data="history"))
 
 choose_device_type = InlineKeyboardMarkup(row_width=2).add(
     InlineKeyboardButton("WireGuard", callback_data="wireguard"),
@@ -37,7 +37,7 @@ balance = InlineKeyboardMarkup(row_width=3).add(
 balance.add(InlineKeyboardButton("Указать свою сумму", callback_data=payment.new(0)))
 
 limit = InlineKeyboardMarkup(row_width=2).add(
-    *[InlineKeyboardButton(f"{amount}", callback_data=limit_data.new(amount))
+    *[InlineKeyboardButton(f"{amount} ГБ: {price} руб", callback_data=limit_data.new(amount))
       for (amount, price) in outline_prices.items()]
 )
 

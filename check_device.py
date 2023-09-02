@@ -12,7 +12,7 @@ async def main():
     for user in users:
         if not user["is_wireguard_active"]:
             continue
-        devices = await db.get_devices_by_user_id_and_device_type(user["user_id"], "wireguard")
+        devices = await db.get_wireguard_devices_for_payment(user["user_id"])
         if not devices:
             continue
         amount = len(devices) * wireguard_price
@@ -29,6 +29,7 @@ async def main():
         else:
             await db.update_user_balance(user["user_id"], -amount)
             await db.add_history_record(user["user_id"], amount, "Оплата конфигов")
+            await db.set_devices_has_first_payment(user["user_id"])
         session = await bot.get_session()
         await session.close()
 

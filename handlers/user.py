@@ -5,51 +5,48 @@ from tabulate import tabulate
 import database as db
 import keyboards.user as user_kb
 import utils.devices
-from config_parser import BOT_NAME, wireguard_price
+from config_parser import BOT_NAME
 from create_bot import dp
 
-start_msgs = {"exists": """Приветствуем вас снова, {firstname}!
+start_msgs = {"exists": """Приветствуем вас снова, {firstname}! 🙋‍♂
 
-Баланс {balance}₽ (~{days} дней)
-WireGuard {wireguard_status} ({wireguard_desc})
-ГБ в Outline можно приобрести (списание разовое)
-Если вы уже купили ГБ для Outline, ваш ключ останется 
-активным, независимо от баланса.
+💵Баланс {balance}₽ (~{days} дней)
+WireGuard {wireguard_status} {wireguard_desc}
+Outline {outline_status} {outline_desc}
 
-При потере QR-кода или конфиг-файла, их можно снова 
-скачать в разделе "Мои устройства".
+В разделе «Мои устройства»:
+для WireGuard: Вы можете создать новый конфиг-файл или восстановить существующий в случае его утери;
+для Outline: Вы можете проверить остаток трафика, создать новый ключ или восстановить существующий в случае его утери;
 
 <b>ВНИМАНИЕ!</b>
-Если WireGuard заблокирован в вашем регионе, 
-рекомендуем использовать Outline.
+Если WireGuard заблокирован в вашем регионе, рекомендуем использовать Outline.
 
 <b>Используя наш сервис, вы соглашаетесь с тем, что мы не несем ответственности за ваши действия в интернете!</b>
 
-👭 Пригласите друзей и заработайте 50₽ за каждого, 
-плюс каждый ваш друг получит 100₽ на баланс!""",
+👨‍⚕Пригласить друга Пригласите друзей и заработайте 50₽ за каждого, плюс каждый ваш друг получит 100₽ на баланс!
+""",
 
-              "new": """Приветствуем Вас, <b>{firstname}</b>!
+              "new": """Приветствуем Вас, {firstname}! 🙋‍♂
 
-Подключите VPN бесплатно! Дарим вам 100₽ на баланс!
+Подключите VPN бесплатно! Дарим Вам 100₽ на баланс!
 
-Высокая скорость
-Свободный доступ к сайтам 
-Удобная форма оплаты 
-Невысокая стоимость 
-Мы используем два типа VPN - WireGuard и Outline
+🚀Высокая скорость
+🌐Свободный доступ к сайтам 
+💳Удобная форма оплаты 
+💵Невысокая стоимость 
+🔐Мы используем два типа VPN - WireGuard и Outline
 
 ⬇️⬇️⬇️ Жмите кнопку! ⬇️⬇️⬇️""",
 
-              "new_invite": """"Привет, <b>{firstname}</b>!
+              "new_invite": """"Приветствуем Вас, {firstname}!
 
-Вас пригласил сюда {inviter_firstname}, поэтому он получил 50₽ на свой баланс!
-А мы вам дарим 100₽ на баланс!
+Вас пригласил сюда {inviter_firstname}, поэтому он получил 50₽ на свой баланс! А мы вам дарим 100₽ на баланс!
 
-Высокая скорость
-Свободный доступ к сайтам 
-Удобная форма оплаты 
-Невысокая стоимость
-Мы используем два типа VPN - WireGuard и Outline
+🚀Высокая скорость
+🌐Свободный доступ к сайтам 
+💳Удобная форма оплаты 
+💵Невысокая стоимость 
+🔐Мы используем два типа VPN - WireGuard и Outline
 
 ⬇️⬇️⬇️ Жмите кнопку! ⬇️⬇️⬇️"""}
 
@@ -82,7 +79,10 @@ async def start_command(message: Message, state: FSMContext):
         msg = start_msgs["exists"].format(firstname=message.from_user.first_name, balance=user["balance"],
                                           days=menu_stats["days"],
                                           wireguard_status=menu_stats["wireguard_status"],
-                                          wireguard_desc=menu_stats["wireguard_desc"])
+                                          wireguard_desc=menu_stats["wireguard_desc"],
+                                          outline_status=menu_stats["outline_status"],
+                                          outline_desc=menu_stats["outline_desc"]
+                                          )
         kb = user_kb.menu
 
     await message.answer(msg, reply_markup=kb)
@@ -102,7 +102,9 @@ async def show_menu(call: CallbackQuery, state: FSMContext):
     msg = start_msgs["exists"].format(firstname=call.from_user.first_name, balance=user["balance"],
                                       days=menu_stats["days"],
                                       wireguard_status=menu_stats["wireguard_status"],
-                                      wireguard_desc=menu_stats["wireguard_desc"])
+                                      wireguard_desc=menu_stats["wireguard_desc"],
+                                      outline_status=menu_stats["outline_status"],
+                                      outline_desc=menu_stats["outline_desc"])
     await call.message.answer(msg, reply_markup=user_kb.menu)
     await call.answer()
 
@@ -110,7 +112,7 @@ async def show_menu(call: CallbackQuery, state: FSMContext):
 @dp.callback_query_handler(state="*", text="start_vpn")
 async def start_vpn(call: CallbackQuery, state: FSMContext):
     await state.finish()
-    await call.message.edit_text("""Поздравляем, Вы активировали аккаунт OberVPN, 100₽ у вас на балансе! 
+    await call.message.edit_text("""🎉Поздравляем, Вы активировали аккаунт OberVPN, 100₽ у Вас на балансе! 
 
 Теперь давайте настроим Ваш VPN.""", reply_markup=user_kb.add_device)
 
@@ -120,6 +122,16 @@ async def inline_cancel(call: CallbackQuery, state: FSMContext):
     await state.finish()
     await call.message.edit_text("Ввод отменен", reply_markup=user_kb.show_menu)
     await call.answer()
+
+
+@dp.message_handler(commands="invite")
+async def msg_ref_menu(message: Message, state: FSMContext):
+    await message.answer(f"""Пошлите другу ссылку:
+
+https://t.me/{BOT_NAME}?start={message.from_user.id}
+
+Когда ваш друг зайдет в наш бот по этой ссылке и создаст аккаунт, вы получите 50₽ на баланс!""",
+                         reply_markup=user_kb.show_menu)
 
 
 @dp.callback_query_handler(text="ref_menu")
