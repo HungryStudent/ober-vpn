@@ -42,7 +42,7 @@ async def create_server_password(message: Message, state: FSMContext):
     await state.finish()
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-
+    await message.answer("Входим на сервер...")
     try:
         client.connect(hostname=ip_address, password=password, username="root", port=22)
     except paramiko.ssh_exception.AuthenticationException:
@@ -55,7 +55,7 @@ async def create_server_password(message: Message, state: FSMContext):
         await message.answer("Проблема при установке")
         with open("error.txt", "w") as f:
             f.write(resp["resp"])
-        with open("error.txt", "r") as f:
+        with open("error.txt", "rb") as f:
             await message.answer_document(f.read())
         countries = await db.get_countries()
         return await message.answer("Меню серверов:", reply_markup=admin_kb.get_countries(countries))
