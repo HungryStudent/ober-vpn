@@ -10,7 +10,7 @@ from create_bot import dp
 @dp.callback_query_handler(is_admin=True, text="admin_ban", state="*")
 async def admin_ban(call: CallbackQuery, state: FSMContext):
     await state.finish()
-    await call.message.answer("Введите user_id", reply_markup=admin_kb.cancel)
+    await call.message.answer("Введите user_id")
     await state.set_state(BanUser.user_id)
     await call.answer()
 

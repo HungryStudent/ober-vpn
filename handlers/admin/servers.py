@@ -42,7 +42,7 @@ async def create_server_password(message: Message, state: FSMContext):
     await state.finish()
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    await message.answer("Входим на сервер...")
+    await message.answer("Входим на сервер...", reply_markup=admin_kb.ReplyKeyboardRemove())
     try:
         client.connect(hostname=ip_address, password=password, username="root", port=22)
     except paramiko.ssh_exception.AuthenticationException:

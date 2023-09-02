@@ -24,7 +24,7 @@ async def func(call: CallbackQuery, callback_data: dict):
 @dp.callback_query_handler(text="create_country", is_admin=True)
 async def create_country_start(call: CallbackQuery):
     await CreateCountry.name.set()
-    await call.message.answer("Введите название страны", reply_markup=admin_kb.cancel)
+    await call.message.answer("Введите название страны")
     await call.answer()
 
 

@@ -11,7 +11,7 @@ from create_bot import dp
 start_msgs = {"exists": """Приветствуем вас снова, {firstname}!
 
 Баланс {balance}₽ (~{days} дней)
-WireGuard активен (списание ежедневное)
+WireGuard {wireguard_status} ({wireguard_desc})
 ГБ в Outline можно приобрести (списание разовое)
 Если вы уже купили ГБ для Outline, ваш ключ останется 
 активным, независимо от баланса.
@@ -80,8 +80,11 @@ async def start_command(message: Message, state: FSMContext):
         user = await db.add_user(message.from_user.id, message.from_user.username, message.from_user.first_name,
                                  inviter_id)
     else:
-        days = await utils.devices.get_days_for_wireguard(user)
-        msg = start_msgs["exists"].format(firstname=message.from_user.first_name, balance=user["balance"], days=days)
+        menu_stats = await utils.devices.get_stats_for_menu(user)
+        msg = start_msgs["exists"].format(firstname=message.from_user.first_name, balance=user["balance"],
+                                          days=menu_stats["days"],
+                                          wireguard_status=menu_stats["wireguard_status"],
+                                          wireguard_desc=menu_stats["wireguard_desc"])
         kb = user_kb.menu
 
     await message.answer(msg, reply_markup=kb)
@@ -97,8 +100,11 @@ async def cancel(message: Message, state: FSMContext):
 async def show_menu(call: CallbackQuery, state: FSMContext):
     await state.finish()
     user = await db.get_user(call.from_user.id)
-    days = await utils.devices.get_days_for_wireguard(user)
-    msg = start_msgs["exists"].format(firstname=call.from_user.first_name, balance=user["balance"], days=days)
+    menu_stats = await utils.devices.get_stats_for_menu(user)
+    msg = start_msgs["exists"].format(firstname=call.from_user.first_name, balance=user["balance"],
+                                      days=menu_stats["days"],
+                                      wireguard_status=menu_stats["wireguard_status"],
+                                      wireguard_desc=menu_stats["wireguard_desc"])
     await call.message.answer(msg, reply_markup=user_kb.menu)
     await call.answer()
 
@@ -108,7 +114,7 @@ async def start_vpn(call: CallbackQuery, state: FSMContext):
     await state.finish()
     await call.message.edit_text("""Поздравляем, Вы активировали аккаунт OberVPN, 100₽ у вас на балансе! 
 
-Теперь давайте настроим Ваш VPN. Выберите тип Вашего устройства :""")
+Теперь давайте настроим Ваш VPN.""", reply_markup=user_kb.add_device)
 
 
 @dp.callback_query_handler(text="cancel", state="*")

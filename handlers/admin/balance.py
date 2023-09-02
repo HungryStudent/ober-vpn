@@ -34,5 +34,5 @@ async def change_balance_amount(message: Message, state: FSMContext):
         return await message.answer("Введите корректную сумму")
     data = await state.get_data()
     await db.update_user_balance(data["user_id"], amount)
-    await message.answer("Баланс изменен")
+    await message.answer("Баланс изменен", reply_markup=admin_kb.ReplyKeyboardRemove())
     await state.finish()

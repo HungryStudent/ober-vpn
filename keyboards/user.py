@@ -46,6 +46,9 @@ support = InlineKeyboardMarkup(row_width=1).add(
     InlineKeyboardButton("Инструкция по установке", callback_data=help_post.new("install")),
     InlineKeyboardButton("Инструкция по установке", callback_data=help_post.new("install")))
 
+add_device = InlineKeyboardMarkup(row_width=1).add(
+    InlineKeyboardButton("Добавить устройство", callback_data="new_device"))
+
 
 def get_devices(devices):
     kb = InlineKeyboardMarkup(row_width=2)
