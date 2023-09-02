@@ -39,7 +39,8 @@ async def admin_device(call: CallbackQuery, state: FSMContext, callback_data: di
     device = await db.get_device(device_id)
     server = await db.get_server(device["server_id"])
     if device["device_type"] == "wireguard":
-        await server_utils.get_wireguard_config(server["ip_address"], server["server_password"], device_id)
+        await server_utils.get_wireguard_config(server["ip_address"], server["server_password"], device_id,
+                                                call.from_user.id)
         await call.message.answer_photo(open(f"OberVPN_{call.from_user.id}_{device_id}.png", "rb"))
         await call.message.answer_document(open(f"OberVPN_{call.from_user.id}_{device_id}.conf", "rb"))
         os.remove(f"OberVPN_{call.from_user.id}_{device_id}.png")
