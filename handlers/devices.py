@@ -15,10 +15,10 @@ from utils.devices import check_wireguard_active
 instructions = {
     "wireguard": """Инструкция для настройки WireGuard на Вашем устройстве:
 1.Скачайте WireGuard из 
-   App Store(IOS,MacOS,iPadOS) — <a href='https://itunes.apple.com/us/app/wireguard/id1441195209?ls=1&mt=8'>ссылка</a>
-   Google Play(Android) — <a href='https://play.google.com/store/apps/details?id=com.wireguard.android'>ссылка</a>
+    App Store(IOS,iPadOS) — <a href='https://itunes.apple.com/us/app/wireguard/id1441195209?ls=1&mt=8'>ссылка</a>
+    Google Play(Android) — <a href='https://play.google.com/store/apps/details?id=com.wireguard.android'>ссылка</a>
 или
-   с официального сайта —  <a href='https://www.wireguard.com/install/'>ссылка</a>
+    с официального сайта —  <a href='https://www.wireguard.com/install/'>ссылка</a>
 2.Скачайте конфиг-файл (имя вида "*.conf") выше в чате
 3.Откройте приложение WireGuard и нажмите на кнопку ➕
 4.Выберите "Импорт" и найдите скачанный конфиг-файл в папке в который был скачем файл
@@ -35,10 +35,10 @@ instructions = {
 Обратите внимание: Один QR-код или конфиг-файл может быть использован только на одном устройстве!""",
     "outline": """Инструкция для настройки Outline на Вашем устройстве:
 1.Скачайте Outline из 
-   App Store(IOS,MacOS,iPadOS) — <a href='https://itunes.apple.com/us/app/outline-app/id1356177741'>ссылка</a>
-   Google Play(Android) — <a href='https://play.google.com/store/apps/details?id=org.outline.android.client'>ссылка</a>
+    App Store(IOS,iPadOS) — <a href='https://itunes.apple.com/us/app/outline-app/id1356177741'>ссылка</a>
+    Google Play(Android) — <a href='https://play.google.com/store/apps/details?id=org.outline.android.client'>ссылка</a>
 или
-   с официального сайта (Скачайте Outline client)  —  <a href='https://getoutline.org/get-started/'>ссылка</a>)
+    с официального сайта (Скачайте Outline client)  —  <a href='https://getoutline.org/get-started/'>ссылка</a>)
 2. Скопируйте ключ ниже в чате
 3.Откройте приложение Outline и нажмите на кнопку ➕
 4.Вставьте ключ в поле и нажмите «Добавить сервер»
@@ -104,7 +104,8 @@ async def new_device_device_type(call: CallbackQuery, state: FSMContext):
 
     await state.update_data(device_type=call.data)
     await state.set_state(NewDevice.name)
-    await call.message.edit_text("""Пример названия устройства: «Мой телефон» или «Мой MacBook»
+    await call.message.edit_text("""Пример названия устройства:
+«Мой телефон» или «Мой MacBook»
 
 Введите название устройства:""", reply_markup=user_kb.inline_cancel)
 
@@ -141,7 +142,6 @@ async def new_device_country(call: CallbackQuery, state: FSMContext, callback_da
     device_id = await db.add_new_device(call.from_user.id, data["device_type"], data["name"], server["server_id"])
     await call.message.edit_text("Девайс успешно создан", reply_markup=user_kb.show_menu)
     price = 0
-    await call.message.answer(instructions[data["device_type"]])
     if data["device_type"] == "wireguard":
         await server_utils.create_wireguard_config(server["ip_address"], server["server_password"], device_id)
         await server_utils.get_wireguard_config(server["ip_address"], server["server_password"], device_id,
@@ -158,9 +158,9 @@ async def new_device_country(call: CallbackQuery, state: FSMContext, callback_da
         await call.message.answer(outline_client["accessUrl"], reply_markup=user_kb.show_menu)
         await db.set_outline_id(device_id, outline_client["id"])
         price = outline_prices[data["limit"]]
-
     await db.update_user_balance(call.from_user.id, -price)
     await db.add_history_record(call.from_user.id, price, "Создание конфига")
+    await call.message.answer(instructions[data["device_type"]], disable_web_page_preview=True)
     await state.finish()
 
 

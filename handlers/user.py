@@ -7,6 +7,7 @@ import keyboards.user as user_kb
 import utils.devices
 from config_parser import BOT_NAME
 from create_bot import dp
+from states.user import NewDevice
 
 start_msgs = {"exists": """Приветствуем вас снова, {firstname}! 🙋‍♂
 
@@ -15,8 +16,8 @@ WireGuard {wireguard_status} {wireguard_desc}
 Outline {outline_status} {outline_desc}
 
 В разделе «Мои устройства»:
-для WireGuard: Вы можете создать новый конфиг-файл или восстановить существующий в случае его утери;
-для Outline: Вы можете проверить остаток трафика, создать новый ключ или восстановить существующий в случае его утери;
+    для WireGuard: Вы можете создать новый конфиг-файл или восстановить существующий в случае его утери;
+    для Outline: Вы можете проверить остаток трафика, создать новый ключ или восстановить существующий в случае его утери;
 
 <b>ВНИМАНИЕ!</b>
 Если WireGuard заблокирован в вашем регионе, рекомендуем использовать Outline.
@@ -114,7 +115,17 @@ async def start_vpn(call: CallbackQuery, state: FSMContext):
     await state.finish()
     await call.message.edit_text("""🎉Поздравляем, Вы активировали аккаунт OberVPN, 100₽ у Вас на балансе! 
 
-Теперь давайте настроим Ваш VPN.""", reply_markup=user_kb.add_device)
+Теперь давайте настроим Ваш VPN.""", reply_markup=user_kb.first_device_wg)
+
+
+@dp.callback_query_handler(text="first_device_wg")
+async def first_device_wg(call: CallbackQuery, state: FSMContext):
+    await state.set_state(NewDevice.name)
+    await state.update_data(device_type="wireguard")
+    await call.message.edit_text("""Пример названия устройства:
+«Мой телефон» или «Мой MacBook»
+
+Введите название устройства:""", reply_markup=user_kb.inline_cancel)
 
 
 @dp.callback_query_handler(text="cancel", state="*")
