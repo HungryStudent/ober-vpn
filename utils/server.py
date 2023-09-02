@@ -29,7 +29,7 @@ async def install(ip_address, password):
         return {"status": False}
     print(match.group(1))
     print(match.group(2))
-    return {"status": True, "outline_url": match.group(1), "outline_sha": match.group(2)}
+    return {"status": True, "outline_url": match.group(1), "outline_sha": match.group(2), "resp": resp}
 
 
 async def create_wireguard_config(ip_address, password, device_id):

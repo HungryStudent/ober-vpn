@@ -39,9 +39,7 @@ async def create_server_password(message: Message, state: FSMContext):
     data = await state.get_data()
     ip_address = data["ip_address"]
     country_id = data["country_id"]
-
-    await message.answer("Ожидайте, настраиваем сервер")
-
+    await state.finish()
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
@@ -49,14 +47,13 @@ async def create_server_password(message: Message, state: FSMContext):
         client.connect(hostname=ip_address, password=password, username="root", port=22)
     except paramiko.ssh_exception.AuthenticationException:
         await message.answer("Проблема со входом на сервер, повторите попытку позже")
-        await state.finish()
         countries = await db.get_countries()
         return await message.answer("Меню серверов:", reply_markup=admin_kb.get_countries(countries))
     await message.answer("Ожидайте, настраиваем сервер")
     resp = await server_utils.install(ip_address, password)
     if not resp["status"]:
         await message.answer("Проблема со входом на сервер, повторите попытку позже")
-        await state.finish()
+        await message.answer(resp["resp"])
         countries = await db.get_countries()
         return await message.answer("Меню серверов:", reply_markup=admin_kb.get_countries(countries))
     server = await db.add_server(ip_address, password, resp["outline_url"], resp["outline_sha"], country_id)
@@ -64,7 +61,7 @@ async def create_server_password(message: Message, state: FSMContext):
     if len(servers) == 1:
         await db.set_default_server(country_id, server["server_id"])
     await message.answer("Сервер успешно создан", reply_markup=admin_kb.get_server(server))
-    await state.finish()
+
     #
     #
     # @dp.callback_query_handler(admin_kb.admin_country.filter(), is_admin=True)
