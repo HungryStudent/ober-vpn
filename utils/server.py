@@ -26,10 +26,10 @@ async def install(ip_address, password):
     pattern = re.compile('API Outline: "apiUrl":"(.*)","certSha256":"(.*)"}')
     match = re.search(pattern, resp)
     if match is None:
-        return {"status": False}
+        return {"status": False, "resp": resp}
     print(match.group(1))
     print(match.group(2))
-    return {"status": True, "outline_url": match.group(1), "outline_sha": match.group(2), "resp": resp}
+    return {"status": True, "outline_url": match.group(1), "outline_sha": match.group(2)}
 
 
 async def create_wireguard_config(ip_address, password, device_id):

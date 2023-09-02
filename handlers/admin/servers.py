@@ -52,7 +52,7 @@ async def create_server_password(message: Message, state: FSMContext):
     await message.answer("Ожидайте, настраиваем сервер")
     resp = await server_utils.install(ip_address, password)
     if not resp["status"]:
-        await message.answer("Проблема со входом на сервер, повторите попытку позже")
+        await message.answer("Проблема при установке")
         await message.answer(resp["resp"])
         countries = await db.get_countries()
         return await message.answer("Меню серверов:", reply_markup=admin_kb.get_countries(countries))
