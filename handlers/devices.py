@@ -109,6 +109,17 @@ async def new_device_country(call: CallbackQuery, state: FSMContext, callback_da
 @dp.callback_query_handler(user_kb.delete_device.filter())
 async def delete_device(call: CallbackQuery, state: FSMContext, callback_data: dict):
     device_id = int(callback_data["device_id"])
+    device = await db.get_device(device_id)
+    if device["device_type"] == "outline":
+        server = await db.get_server(device["server_id"])
+        outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
+        outline_client = outline_manager.get_client(device["outline_id"])
+        outline_client_usage = outline_manager.get_usage_data(outline_client["id"])
+        usage_gb = outline_client_usage // (1000 ** 3)
+        limit_gb = outline_client['dataLimit']['bytes'] // (1000 ** 3)
+        remaining_gb = limit_gb - usage_gb
+        if usage_gb >= limit_gb:
+            return await call.message.answer(f"Невозможно удалить устройство, у вас осталось {remaining_gb}ГБ")
     await call.message.answer("Вы действительно хотите удалить устройство?",
                               reply_markup=user_kb.get_delete_device(device_id))
     await call.answer()
