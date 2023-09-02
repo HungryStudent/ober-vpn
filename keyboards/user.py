@@ -80,13 +80,14 @@ def get_add_limit(device_id):
     kb = InlineKeyboardMarkup(row_width=1)
     for (amount, price) in outline_prices.items():
         kb.add(InlineKeyboardButton(f"{amount} ГБ: {price} руб", callback_data=add_limit.new(device_id, amount)))
+    kb.add(InlineKeyboardButton("🏠Главное меню", callback_data="show_menu"))
     return kb
 
 
 def get_accept_add_limit(device_id, amount):
     kb = InlineKeyboardMarkup(row_width=1)
-    kb.add(InlineKeyboardButton("Да, добавить", callback_data=accept_add_limit.new(device_id, amount)),
-           InlineKeyboardButton("Нет, добавлять", callback_data=accept_add_limit.new(device_id, 0)))
+    kb.add(InlineKeyboardButton("Да", callback_data=accept_add_limit.new(device_id, amount)),
+           InlineKeyboardButton("Нет", callback_data=accept_add_limit.new(device_id, 0)))
     return kb
 
 

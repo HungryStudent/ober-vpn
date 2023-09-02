@@ -119,7 +119,8 @@ async def new_device_limit(call: CallbackQuery, state: FSMContext, callback_data
         return await state.finish()
     await state.update_data(limit=limit)
     await state.set_state(NewDevice.name)
-    await call.message.edit_text("""Пример названия устройства: «Мой телефон» или «Мой MacBook»
+    await call.message.edit_text("""Пример названия устройства:
+«Мой телефон» или «Мой MacBook»
 
 Введите название устройства:""", reply_markup=user_kb.inline_cancel)
 
@@ -252,7 +253,7 @@ async def accept_add_limit(call: CallbackQuery, state: FSMContext, callback_data
     if value == 0:
         return await call.message.answer("Вы отказались от добавления трафика", reply_markup=user_kb.show_menu)
     if user["balance"] < outline_prices[value]:
-        return await call.message.answer("Недостаточно средств на баланса", reply_markup=user_kb.show_menu)
+        return await call.message.answer("Недостаточно средств на балансе", reply_markup=user_kb.show_menu)
     device = await db.get_device(device_id)
     server = await db.get_server(device["server_id"])
     outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
