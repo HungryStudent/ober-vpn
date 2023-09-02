@@ -4,13 +4,13 @@ from aiogram.types import CallbackQuery
 import keyboards.user as user_kb
 from create_bot import dp
 
-help_texts = {"install": "скачайте"}
+help_texts = {"install": "ПОМОЩЬ 1"}
 
 
 @dp.callback_query_handler(state="*", text="help")
 async def help_menu(call: CallbackQuery, state: FSMContext):
     await state.finish()
-    await call.message.answer("Помощь", reply_markup=user_kb.support)
+    await call.message.answer("Выберите тему для получения помощи", reply_markup=user_kb.support)
     await call.answer()
 
 

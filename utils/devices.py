@@ -21,3 +21,13 @@ async def check_wireguard_active(user_id, bot: Bot):
                 await server_utils.enable_wireguard_config(server["ip_address"], server["server_password"],
                                                            device["device_id"])
             await bot.send_message(user_id, "Устройства WireGuard оплачены и активированы")
+
+
+async def get_days_for_wireguard(user):
+    devices = await db.get_devices_by_user_id_and_device_type(user["user_id"], "wireguard")
+    amount = len(devices) * wireguard_price
+    try:
+        days = float(user["balance"]) // amount
+    except ZeroDivisionError:
+        days = 0
+    return days

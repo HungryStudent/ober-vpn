@@ -14,22 +14,27 @@ help_post = CallbackData("help_post", "post")
 
 inline_cancel = InlineKeyboardMarkup(row_width=1).add(InlineKeyboardButton("Отмена", callback_data="cancel"))
 
+start = InlineKeyboardMarkup(row_width=1).add(InlineKeyboardButton("🎉 ПОДКЛЮЧИТЬ VPN 🎉", callback_data="start_vpn"))
+
+show_menu = InlineKeyboardMarkup(row_width=1).add(InlineKeyboardButton("Главное меню", callback_data="show_menu"))
+
 menu = InlineKeyboardMarkup(row_width=2).add(
-    InlineKeyboardButton("Пригласить", callback_data="ref_menu"),
     InlineKeyboardButton("Мои устройства", callback_data="devices"),
-    InlineKeyboardButton("Помощь", callback_data="help"),
     InlineKeyboardButton("Пополнить баланс", callback_data="balance_menu"),
-    InlineKeyboardButton("История платежей", callback_data="history")
-)
+    InlineKeyboardButton("Пригласить друга", callback_data="ref_menu"),
+    # InlineKeyboardButton("Помощь", callback_data="help"),
+
+).add(InlineKeyboardButton("История платежей", callback_data="history"))
 
 choose_device_type = InlineKeyboardMarkup(row_width=2).add(
     InlineKeyboardButton("WireGuard", callback_data="wireguard"),
     InlineKeyboardButton("Outline", callback_data="outline")
 )
 
-balance_amounts = [100, 200, 300, 400, 500, 700, 1000, 2000, 3000]
+balance_amounts = [100, 200, 300, 500, 1000, 2000]
 balance = InlineKeyboardMarkup(row_width=3).add(
     *[InlineKeyboardButton(text=f"{amount}₽", callback_data=payment.new(amount)) for amount in balance_amounts])
+balance.add(InlineKeyboardButton("Указать свою сумму", callback_data=payment.new(0)))
 
 limit = InlineKeyboardMarkup(row_width=2).add(
     *[InlineKeyboardButton(f"{amount}", callback_data=limit_data.new(amount))
@@ -37,6 +42,8 @@ limit = InlineKeyboardMarkup(row_width=2).add(
 )
 
 support = InlineKeyboardMarkup(row_width=1).add(
+    InlineKeyboardButton("Инструкция по установке", callback_data=help_post.new("install")),
+    InlineKeyboardButton("Инструкция по установке", callback_data=help_post.new("install")),
     InlineKeyboardButton("Инструкция по установке", callback_data=help_post.new("install")))
 
 

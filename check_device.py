@@ -21,7 +21,7 @@ async def main():
             await bot.send_message(user["user_id"],
                                    "Недостаточно средств, чтобы оплатить устройства WireGuard. "
                                    "Устройство временно заморожены\nДля активации пополните баланс.",
-                                   reply_markup=user_kb.menu)
+                                   reply_markup=user_kb.show_menu)
             for device in devices:
                 server = await db.get_server(device["server_id"])
                 await server_utils.disable_wireguard_config(server["ip_address"], server["server_password"],
