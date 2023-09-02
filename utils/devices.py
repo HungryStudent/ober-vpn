@@ -54,11 +54,12 @@ async def get_stats_for_menu(user):
             outline_client_usage = outline_manager.get_usage_data(outline_client["id"])
             usage_gb = outline_client_usage // (1000 ** 3)
             limit_gb = outline_client['dataLimit']['bytes'] // (1000 ** 3)
-            if usage_gb >= limit_gb:
+            if usage_gb < limit_gb:
                 outline_status = "активен"
                 outline_desc = ""
+                break
 
     return {
         "days": days, "wireguard_status": wireguard_status, "wireguard_desc": wireguard_desc,
         "outline_status": outline_status, "outline_desc": outline_desc
-            }
+    }
