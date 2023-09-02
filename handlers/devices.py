@@ -15,15 +15,15 @@ from utils.devices import check_wireguard_active
 instructions = {
     "wireguard": """Инструкция для настройки WireGuard на Вашем устройстве:
 1.Скачайте WireGuard из 
-    App Store(IOS,iPadOS) — <a href='https://itunes.apple.com/us/app/wireguard/id1441195209?ls=1&mt=8'>ссылка</a>
+    App Store(iOS,iPadOS) — <a href='https://itunes.apple.com/us/app/wireguard/id1441195209?ls=1&mt=8'>ссылка</a>
     Google Play(Android) — <a href='https://play.google.com/store/apps/details?id=com.wireguard.android'>ссылка</a>
 или
     с официального сайта —  <a href='https://www.wireguard.com/install/'>ссылка</a>
 2.Скачайте конфиг-файл (имя вида "*.conf") выше в чате
 3.Откройте приложение WireGuard и нажмите на кнопку ➕
-4.Выберите "Импорт" и найдите скачанный конфиг-файл в папке в который был скачем файл
+4.Выберите "Импорт" и найдите скачанный конфиг-файл в папке в который был скачен файл
 
-В случае IOS,iPadOS:
+В случае iOS,iPadOS:
 2.Нажмите на конфиг-файл (имя вида "*.conf") выше в чате
 3.Нажмите кнопку "Поделиться"
 4.Из списка программ выберите WireGuard
@@ -35,10 +35,10 @@ instructions = {
 Обратите внимание: Один QR-код или конфиг-файл может быть использован только на одном устройстве!""",
     "outline": """Инструкция для настройки Outline на Вашем устройстве:
 1.Скачайте Outline из 
-    App Store(IOS,iPadOS) — <a href='https://itunes.apple.com/us/app/outline-app/id1356177741'>ссылка</a>
+    App Store(iOS,iPadOS) — <a href='https://itunes.apple.com/us/app/outline-app/id1356177741'>ссылка</a>
     Google Play(Android) — <a href='https://play.google.com/store/apps/details?id=org.outline.android.client'>ссылка</a>
 или
-    с официального сайта (Скачайте Outline client)  —  <a href='https://getoutline.org/get-started/'>ссылка</a>)
+    с официального сайта (Скачайте Outline client)  —  <a href='https://getoutline.org/get-started/'>ссылка</a>
 2. Скопируйте ключ ниже в чате
 3.Откройте приложение Outline и нажмите на кнопку ➕
 4.Вставьте ключ в поле и нажмите «Добавить сервер»
@@ -115,7 +115,7 @@ async def new_device_limit(call: CallbackQuery, state: FSMContext, callback_data
     limit = int(callback_data["value"])
     user = await db.get_user(call.from_user.id)
     if user["balance"] < outline_prices[limit]:
-        await call.message.edit_text("Недостаточно баланса для создания конфига", reply_markup=user_kb.show_menu)
+        await call.message.edit_text("Недостаточно баланса для создания ключа", reply_markup=user_kb.show_menu)
         return await state.finish()
     await state.update_data(limit=limit)
     await state.set_state(NewDevice.name)
@@ -147,20 +147,20 @@ async def new_device_country(call: CallbackQuery, state: FSMContext, callback_da
         await server_utils.get_wireguard_config(server["ip_address"], server["server_password"], device_id,
                                                 call.from_user.id)
         await call.message.answer_photo(open(f"OberVPN_{call.from_user.id}_{device_id}.png", "rb"))
-        await call.message.answer_document(open(f"OberVPN_{call.from_user.id}_{device_id}.conf", "rb"),
-                                           reply_markup=user_kb.show_menu)
+        await call.message.answer_document(open(f"OberVPN_{call.from_user.id}_{device_id}.conf", "rb"))
         os.remove(f"OberVPN_{call.from_user.id}_{device_id}.png")
         os.remove(f"OberVPN_{call.from_user.id}_{device_id}.conf")
         price = 0
     elif data["device_type"] == "outline":
         outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
         outline_client = outline_manager.create_client(call.from_user.id, data["limit"])
-        await call.message.answer(outline_client["accessUrl"], reply_markup=user_kb.show_menu)
+        await call.message.answer(outline_client["accessUrl"])
         await db.set_outline_id(device_id, outline_client["id"])
         price = outline_prices[data["limit"]]
     await db.update_user_balance(call.from_user.id, -price)
     await db.add_history_record(call.from_user.id, price, "Создание конфига")
-    await call.message.answer(instructions[data["device_type"]], disable_web_page_preview=True)
+    await call.message.answer(instructions[data["device_type"]], disable_web_page_preview=True,
+                              reply_markup=user_kb.show_menu)
     await state.finish()
 
 
@@ -179,10 +179,6 @@ async def delete_device(call: CallbackQuery, state: FSMContext, callback_data: d
         if usage_gb < limit_gb:
             return await call.message.answer(
                 f"""Невозможно удалить устройство, пока у Вас есть свободный остаток трафика. Остаток трафика {remaining_gb}ГБ""")
-    elif device["device_type"] == "wireguard" and not device["has_first_payment"]:
-        pay_date = date.today().strftime("%d.%m.%Y")
-        return await call.message.answer(
-            f"Извините за неудобства, но прошу обратить внимание, что удаление данного устройства будет недоступно до {pay_date} в 00:00.")
     await call.message.answer("Вы действительно хотите удалить устройство?",
                               reply_markup=user_kb.get_delete_device(device_id))
     await call.answer()
@@ -217,8 +213,7 @@ async def device_menu(call: CallbackQuery, state: FSMContext, callback_data: dic
         await server_utils.get_wireguard_config(server["ip_address"], server["server_password"], device_id,
                                                 call.from_user.id)
         await call.message.answer_photo(open(f"OberVPN_{call.from_user.id}_{device_id}.png", "rb"))
-        await call.message.answer_document(open(f"OberVPN_{call.from_user.id}_{device_id}.conf", "rb"),
-                                           reply_markup=user_kb.show_menu)
+        await call.message.answer_document(open(f"OberVPN_{call.from_user.id}_{device_id}.conf", "rb"))
         os.remove(f"OberVPN_{call.from_user.id}_{device_id}.png")
         os.remove(f"OberVPN_{call.from_user.id}_{device_id}.conf")
     elif device["device_type"] == "outline":
@@ -232,6 +227,8 @@ async def device_menu(call: CallbackQuery, state: FSMContext, callback_data: dic
         limit_gb = outline_client['dataLimit']['bytes'] // (1000 ** 3)
         await call.message.answer(f"""Использовано {usage_gb}/{limit_gb}ГБ
 {outline_client['accessUrl']}""", reply_markup=user_kb.get_add_limit(device_id))
+    await call.message.answer(instructions[device["device_type"]], disable_web_page_preview=True,
+                              reply_markup=user_kb.show_menu)
     await call.answer()
 
 
