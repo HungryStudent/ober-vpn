@@ -86,10 +86,12 @@ async def new_device_country(call: CallbackQuery, state: FSMContext, callback_da
     price = 0
     if data["device_type"] == "wireguard":
         await server_utils.create_wireguard_config(server["ip_address"], server["server_password"], device_id)
-        await call.message.answer_photo(open(f"u{device_id}.png", "rb"))
-        await call.message.answer_document(open(f"u{device_id}.conf", "rb"), reply_markup=user_kb.show_menu)
-        os.remove(f"u{device_id}.png")
-        os.remove(f"u{device_id}.conf")
+        await server_utils.get_wireguard_config(server["ip_address"], server["server_password"], device_id,
+                                                call.from_user.id)
+        await call.message.answer_photo(open(f"OberVPN_{call.from_user.id}_{device_id}.png", "rb"))
+        await call.message.answer_document(open(f"OberVPN_{call.from_user.id}_{device_id}.conf", "rb"), reply_markup=user_kb.show_menu)
+        os.remove(f"OberVPN_{call.from_user.id}_{device_id}.png")
+        os.remove(f"OberVPN_{call.from_user.id}_{device_id}.conf")
         price = 0
     elif data["device_type"] == "outline":
         outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
@@ -138,10 +140,10 @@ async def device_menu(call: CallbackQuery, state: FSMContext, callback_data: dic
     server = await db.get_server(device["server_id"])
     if device["device_type"] == "wireguard":
         await server_utils.get_wireguard_config(server["ip_address"], server["server_password"], device_id)
-        await call.message.answer_photo(open(f"u{device_id}.png", "rb"))
-        await call.message.answer_document(open(f"u{device_id}.conf", "rb"), reply_markup=user_kb.show_menu)
-        os.remove(f"u{device_id}.png")
-        os.remove(f"u{device_id}.conf")
+        await call.message.answer_photo(open(f"OberVPN_{call.from_user.id}_{device_id}.png", "rb"))
+        await call.message.answer_document(open(f"OberVPN_{call.from_user.id}_{device_id}.conf", "rb"), reply_markup=user_kb.show_menu)
+        os.remove(f"OberVPN_{call.from_user.id}_{device_id}.png")
+        os.remove(f"OberVPN_{call.from_user.id}_{device_id}.conf")
     elif device["device_type"] == "outline":
         outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
         outline_client = outline_manager.get_client(device["outline_id"])

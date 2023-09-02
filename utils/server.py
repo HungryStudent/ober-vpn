@@ -37,15 +37,14 @@ async def install(ip_address, password):
 async def create_wireguard_config(ip_address, password, device_id):
     cmd = f'/root/script/mpivpn {ip_address} {password} "pivpn add -n u{device_id}"'
     resp = await execute_command(cmd, has_resp=True)
-    await get_wireguard_config(ip_address, password, device_id)
 
 
-async def get_wireguard_config(ip_address, password, device_id):
-    cmd = f'/root/script/mpivpn {ip_address} {password} "cat /home/wgvpn/configs/u{device_id}.conf" > u{device_id}.conf'
+async def get_wireguard_config(ip_address, password, device_id, user_id):
+    cmd = f'/root/script/mpivpn {ip_address} {password} "cat /home/wgvpn/configs/u{device_id}.conf" > OberVPN_{user_id}_{device_id}.conf'
     await execute_command(cmd, has_resp=True)
-    with open(f"u{device_id}.conf") as fh:
+    with open(f"OberVPN_{user_id}_{device_id}.conf") as fh:
         img = qrcode.make(fh.read())
-        img.save(f"u{device_id}.png")
+        img.save(f"OberVPN_{user_id}_{device_id}.png")
 
 
 async def delete_wireguard_config(ip_address, password, device_id):
