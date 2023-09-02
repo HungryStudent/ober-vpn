@@ -241,6 +241,7 @@ async def add_limit(call: CallbackQuery, state: FSMContext, callback_data: dict)
     value = int(callback_data["value"])
     await call.message.answer("Вы действительно хотите увеличить трафик?",
                               reply_markup=user_kb.get_accept_add_limit(device_id, value))
+    await call.answer()
 
 
 @dp.callback_query_handler(user_kb.accept_add_limit.filter())
@@ -248,6 +249,8 @@ async def accept_add_limit(call: CallbackQuery, state: FSMContext, callback_data
     device_id = int(callback_data["device_id"])
     value = int(callback_data["value"])
     user = await db.get_user(call.from_user.id)
+    if value == 0:
+        await call.message.answer("Вы отказались от добавления трафика", reply_markup=user_kb.show_menu)
     if user["balance"] < outline_prices[value]:
         return await call.message.answer("Недостаточно средств на баланса", reply_markup=user_kb.show_menu)
     device = await db.get_device(device_id)
