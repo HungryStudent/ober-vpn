@@ -15,6 +15,8 @@ async def execute_command(command, has_resp=False):
         stderr=asyncio.subprocess.PIPE
     )
     stdout = await proc.communicate()
+    print(stdout)
+    print("_______________________")
     if has_resp:
         return stdout[0].decode("utf-8")
 
