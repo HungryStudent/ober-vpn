@@ -250,7 +250,7 @@ async def accept_add_limit(call: CallbackQuery, state: FSMContext, callback_data
     value = int(callback_data["value"])
     user = await db.get_user(call.from_user.id)
     if value == 0:
-        await call.message.answer("Вы отказались от добавления трафика", reply_markup=user_kb.show_menu)
+        return await call.message.answer("Вы отказались от добавления трафика", reply_markup=user_kb.show_menu)
     if user["balance"] < outline_prices[value]:
         return await call.message.answer("Недостаточно средств на баланса", reply_markup=user_kb.show_menu)
     device = await db.get_device(device_id)
