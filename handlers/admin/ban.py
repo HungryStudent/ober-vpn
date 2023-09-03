@@ -5,6 +5,7 @@ import database as db
 import keyboards.admin as admin_kb
 from states.admin import BanUser
 from create_bot import dp
+import utils.server as server_utils
 
 
 @dp.callback_query_handler(is_admin=True, text="admin_ban", state="*")
@@ -41,9 +42,19 @@ async def ban_user(call: CallbackQuery, state: FSMContext, callback_data: dict):
     if action == "ban":
         status = True
         msg = "Пользователь заблокирован"
+        devices = await db.get_devices_by_user_id_and_device_type(user_id, "wireguard")
+        for device in devices:
+            server = await db.get_server(device["server_id"])
+            await server_utils.disable_wireguard_config(server["ip_address"], server["server_password"],
+                                                        device["device_id"])
     else:
         status = False
         msg = "Пользователь разблокирован"
+        devices = await db.get_devices_by_user_id_and_device_type(user_id, "wireguard")
+        for device in devices:
+            server = await db.get_server(device["server_id"])
+            await server_utils.enable_wireguard_config(server["ip_address"], server["server_password"],
+                                                       device["device_id"])
     await db.set_is_banned(user_id, status)
     await call.message.answer(msg)
     await call.answer()
