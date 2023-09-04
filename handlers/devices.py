@@ -19,7 +19,7 @@ instructions = {
     Google Play(Android) — <a href='https://play.google.com/store/apps/details?id=com.wireguard.android'>ссылка</a>
 или
     с официального сайта —  <a href='https://www.wireguard.com/install/'>ссылка</a>
-2.Скачайте конфиг-файл (имя вида "*.conf") выше в чате
+2.Скачайте конфиг-файл (имя вида "*.conf") ниже в чате
 3.Откройте приложение WireGuard и нажмите на кнопку ➕
 4.Выберите "Импорт" и найдите скачанный конфиг-файл в папке в который был скачан файл
 
@@ -65,7 +65,7 @@ Outline (OL):
 Чтобы получить ключ и узнать остаток трафика, нажмите на имя устройства."""
 
 
-@dp.message_handler(commands="devices")
+@dp.message_handler(commands="devices", state="*")
 async def msg_device_menu(message: Message, state: FSMContext):
     await state.finish()
     devices = await db.get_devices_by_user_id(message.from_user.id)
