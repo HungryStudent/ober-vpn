@@ -21,8 +21,11 @@ show_menu = InlineKeyboardMarkup(row_width=1).add(InlineKeyboardButton("🏠Гл
 
 menu = InlineKeyboardMarkup(row_width=2).add(
     InlineKeyboardButton("📱Мои устройства", callback_data="devices"),
-    InlineKeyboardButton("💵Пополнить баланс", callback_data="balance_menu"),
-    InlineKeyboardButton("👨‍⚕Пригласить друга", callback_data="ref_menu"),
+    InlineKeyboardButton("💵Пополнить баланс", callback_data="balance_menu")
+).add(
+    InlineKeyboardButton("📹 Видеоинструкции", callback_data="video_help")
+).add(
+    InlineKeyboardButton("👨‍⚕Пригласить друга", callback_data="ref_menu")
     # InlineKeyboardButton("Помощь", callback_data="help"),
 
 ).add(InlineKeyboardButton("🧾История платежей", callback_data="history"))

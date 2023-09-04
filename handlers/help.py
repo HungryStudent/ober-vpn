@@ -19,3 +19,9 @@ async def help_post(call: CallbackQuery, state: FSMContext, callback_data: dict)
     post = callback_data["post"]
     await call.message.answer(help_texts[post])
     await call.answer()
+
+
+@dp.callback_query_handler(text="video_help")
+async def video_help(call: CallbackQuery, state: FSMContext):
+    await call.message.answer("https://www.youtube.com/watch?v=OU00dKQYUMI")
+    await call.answer()
