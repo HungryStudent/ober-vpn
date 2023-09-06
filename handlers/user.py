@@ -135,8 +135,9 @@ async def inline_cancel(call: CallbackQuery, state: FSMContext):
     await call.answer()
 
 
-@dp.message_handler(commands="invite")
+@dp.message_handler(commands="invite", state="*")
 async def msg_ref_menu(message: Message, state: FSMContext):
+    await state.finish()
     refs_count = await db.get_referals_count(message.from_user.id)
     await message.answer(f"""Пошлите другу ссылку:
 

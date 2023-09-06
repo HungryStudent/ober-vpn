@@ -9,7 +9,7 @@ from utils import pay
 from states.user import BalanceAmount
 
 
-@dp.message_handler(commands="topup")
+@dp.message_handler(commands="topup", state="*")
 async def msg_balance_menu(message: Message, state: FSMContext):
     await state.finish()
     user = await db.get_user(message.from_user.id)
