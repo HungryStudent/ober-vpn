@@ -53,6 +53,7 @@ Outline {outline_status} {outline_desc}
 
 @dp.message_handler(commands=['start'], state="*")
 async def start_command(message: Message, state: FSMContext):
+    print("aksldmalksdm")
     await state.finish()
     user = await db.get_user(message.from_user.id)
 
@@ -136,21 +137,27 @@ async def inline_cancel(call: CallbackQuery, state: FSMContext):
 
 @dp.message_handler(commands="invite")
 async def msg_ref_menu(message: Message, state: FSMContext):
+    refs_count = await db.get_referals_count(message.from_user.id)
     await message.answer(f"""Пошлите другу ссылку:
 
 https://t.me/{BOT_NAME}?start={message.from_user.id}
 
-Когда ваш друг зайдет в наш бот по этой ссылке и создаст аккаунт, вы получите 50₽ на баланс!""",
+Когда ваш друг зайдет в наш бот по этой ссылке и создаст аккаунт, вы получите 50₽ на баланс!
+
+Количество приглашенных: {refs_count}""",
                          reply_markup=user_kb.show_menu)
 
 
 @dp.callback_query_handler(text="ref_menu")
 async def ref_menu(call: CallbackQuery, state: FSMContext):
+    refs_count = await db.get_referals_count(call.from_user.id)
     await call.message.answer(f"""Пошлите другу ссылку:
 
 https://t.me/{BOT_NAME}?start={call.from_user.id}
 
-Когда ваш друг зайдет в наш бот по этой ссылке и создаст аккаунт, вы получите 50₽ на баланс!""",
+Когда ваш друг зайдет в наш бот по этой ссылке и создаст аккаунт, вы получите 50₽ на баланс!
+
+Количество приглашенных: {refs_count}""",
                               reply_markup=user_kb.show_menu)
     await call.answer()
 

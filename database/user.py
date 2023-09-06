@@ -49,3 +49,9 @@ async def delete_user(user_id):
     await conn.execute("DELETE FROM history WHERE user_id = $1", user_id)
     await conn.execute("DELETE FROM users WHERE user_id = $1", user_id)
     await conn.close()
+
+async def get_referals_count(user_id):
+    conn: Connection = await get_conn()
+    row = await conn.fetchrow("SELECT COUNT(*) as refs_count from users WHERE inviter_id = $1", user_id)
+    await conn.close()
+    return row["refs_count"]
