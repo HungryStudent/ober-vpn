@@ -4,6 +4,7 @@ from aiogram.types import Message, CallbackQuery
 import database as db
 import keyboards.admin as admin_kb
 from create_bot import dp
+from states.admin import DeleteUser
 
 
 @dp.message_handler(is_admin=True, commands="admin", state="*")
@@ -51,3 +52,34 @@ async def balance_user(message: Message, state: FSMContext):
     await db.update_user_balance(user_id, value)
     await message.answer("Баланс изменен")
 
+
+@dp.callback_query_handler(text="delete_user")
+async def delete_user_start(call: CallbackQuery, state: FSMContext):
+    await call.message.answer("Введите user_id")
+    await state.set_state(DeleteUser.user_id)
+    await call.answer()
+
+
+@dp.message_handler(is_admin=True, state=DeleteUser.user_id)
+async def delete_user(message: Message, state: FSMContext):
+    try:
+        user_id = int(message.text)
+    except ValueError:
+        return await message.answer("Введите корректный user_id")
+    if user_id == message.from_user.id:
+        return await message.answer("Вы не можете удалить себя")
+    await state.finish()
+    await message.answer("Вы действительно хотите удалить пользователя?",
+                         reply_markup=admin_kb.get_delete_user(user_id))
+
+
+@dp.callback_query_handler(admin_kb.delete_user_action.filter())
+async def delete_user_action(call: CallbackQuery, state: FSMContext, callback_data: dict):
+    user_id = int(callback_data["user_id"])
+    action = callback_data["action"]
+    if action == "approve":
+        await db.delete_user(user_id)
+        await call.message.edit_text("Пользователь удален", reply_markup=admin_kb.menu)
+    elif action == "cancel":
+        await call.message.edit_text("Вы отказались от удаления пользователя!", reply_markup=admin_kb.menu)
+    await call.answer()

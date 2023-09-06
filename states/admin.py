@@ -33,3 +33,7 @@ class BanUser(StatesGroup):
 class ChangeBalanceUser(StatesGroup):
     user_id = State()
     amount = State()
+
+
+class DeleteUser(StatesGroup):
+    user_id = State()
