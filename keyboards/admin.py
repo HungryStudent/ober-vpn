@@ -30,7 +30,8 @@ menu = InlineKeyboardMarkup(row_width=1).add(InlineKeyboardButton("Сервер�
                                              InlineKeyboardButton("Конфиги", callback_data="admin_devices"),
                                              InlineKeyboardButton("Бан/Разбан", callback_data="admin_ban"),
                                              InlineKeyboardButton("Изменить баланс", callback_data="admin_balance"),
-                                             InlineKeyboardButton("Удалить пользователя", callback_data="delete_user"))
+                                             InlineKeyboardButton("Удалить пользователя", callback_data="delete_user"),
+                                             InlineKeyboardButton("Ежедневный отчет", callback_data="report"))
 
 
 def get_countries(countries):

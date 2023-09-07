@@ -15,14 +15,14 @@ from utils import devices
 #             "ol_active": ol_active, "ol_no_config": ol_no_config, "ol_no_limit": ol_no_limit}
 
 
-async def main():
+async def create_report():
     start = time.time()
     users = await db.get_users()
     today_users = await db.get_today_users()
     if today_users is None:
         today_users = []
     msg = f"""Общее количество клиентов - {len(users)}
-Количество клиентов пришедших за день - {len(today_users)}\n\n"""
+    Количество клиентов пришедших за день - {len(today_users)}\n\n"""
     all_active = 0
     all_inactive = 0
     wg_active = 0
@@ -52,9 +52,9 @@ async def main():
                 ol_no_limit += 1
     msg += f"""Активные/Неактивные - {all_active}/{all_inactive}
 
-WG акт/нет конф/нет средств {wg_active}/{wg_no_config}/{wg_no_money}
+    WG акт/нет конф/нет средств {wg_active}/{wg_no_config}/{wg_no_money}
 
-OL акт/нет ключей/нет трафика {ol_active}/{ol_no_config}/{ol_no_limit}\n\n"""
+    OL акт/нет ключей/нет трафика {ol_active}/{ol_no_config}/{ol_no_limit}\n\n"""
     print(time.time() - start)
     countries = await db.get_countries()
     for country in countries:
@@ -62,9 +62,9 @@ OL акт/нет ключей/нет трафика {ol_active}/{ol_no_config}/{
         today_users = await db.get_today_users_by_country_id(country["country_id"])
 
         msg += f"""{country["name"]}:
-        
-Общее количество клиентов - {len(users)}
-Количество клиентов пришедших за день - {len(today_users)}\n\n"""
+
+    Общее количество клиентов - {len(users)}
+    Количество клиентов пришедших за день - {len(today_users)}\n\n"""
         all_active = 0
         all_inactive = 0
         wg_active = 0
@@ -94,8 +94,13 @@ OL акт/нет ключей/нет трафика {ol_active}/{ol_no_config}/{
                     ol_no_limit += 1
         msg += f"""WG акт/нет конф/нет средств {wg_active}/{wg_no_config}/{wg_no_money}
 
-OL акт/нет ключей/нет трафика {ol_active}/{ol_no_config}/{ol_no_limit}\n\n"""
+    OL акт/нет ключей/нет трафика {ol_active}/{ol_no_config}/{ol_no_limit}\n\n"""
     print(time.time() - start)
+    return msg
+
+
+async def main():
+    msg = await create_report()
     for admin in ADMINS:
         await bot.send_message(admin, msg)
     session = await bot.get_session()

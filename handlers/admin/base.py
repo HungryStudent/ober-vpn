@@ -1,3 +1,4 @@
+import aiohttp
 from aiogram.dispatcher import FSMContext
 from aiogram.types import Message, CallbackQuery
 
@@ -51,6 +52,15 @@ async def balance_user(message: Message, state: FSMContext):
         return await message.answer("Команда введена неверно. Используйте /balance {id пользователя} {баланс}")
     await db.update_user_balance(user_id, value)
     await message.answer("Баланс изменен")
+
+
+@dp.callback_query_handler(text="report")
+async def report(call: CallbackQuery, state: FSMContext):
+    await call.message.answer("Отчёт подгружается...")
+    async with aiohttp.ClientSession() as session:
+        async with session.get('http://localhost:8001/report') as resp:
+            response = await resp.json()
+            await call.message.answer(response['msg'])
 
 
 @dp.callback_query_handler(text="delete_user")
