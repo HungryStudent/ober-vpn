@@ -232,6 +232,7 @@ async def device_menu(call: CallbackQuery, state: FSMContext, callback_data: dic
         limit_gb = outline_client['dataLimit']['bytes'] // (1000 ** 3)
         await call.message.answer(f"""Использовано {usage_gb}/{limit_gb}ГБ
 
+Нажмите на ключ ниже, чтобы скопировать его 👇
 <code>{outline_client['accessUrl']}</code>""", reply_markup=user_kb.get_add_limit(device_id))
 
     await call.answer()
