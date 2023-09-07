@@ -2,10 +2,8 @@ import asyncio
 import time
 
 import database as db
-import utils.server as server_utils
-from config_parser import wireguard_price, ADMINS
+from config_parser import ADMINS
 from create_bot import bot
-from keyboards import user as user_kb
 from utils import devices
 
 
@@ -54,13 +52,19 @@ async def main():
                 ol_no_limit += 1
     msg += f"""Активные/Неактивные - {all_active}/{all_inactive}
 
-WG {wg_active}/{wg_no_config}/{wg_no_money}
+WG акт/нет конф/нет средств {wg_active}/{wg_no_config}/{wg_no_money}
 
-OL {ol_active}/{ol_no_config}/{ol_no_limit}\n\n"""
+OL акт/нет ключей/нет трафика {ol_active}/{ol_no_config}/{ol_no_limit}\n\n"""
     print(time.time() - start)
     countries = await db.get_countries()
     for country in countries:
-        msg += f'{country["name"]}:\n\n'
+        users = await db.get_users_by_country_id(country["country_id"])
+        today_users = await db.get_today_users_by_country_id(country["country_id"])
+
+        msg += f"""{country["name"]}:
+        
+Общее количество клиентов - {len(users)}
+Количество клиентов пришедших за день - {len(today_users)}\n\n"""
         all_active = 0
         all_inactive = 0
         wg_active = 0
@@ -88,9 +92,9 @@ OL {ol_active}/{ol_no_config}/{ol_no_limit}\n\n"""
                     ol_no_config += 1
                 elif stats["outline_desc"] == "(закончился трафик)":
                     ol_no_limit += 1
-        msg += f"""WG {wg_active}/{wg_no_config}/{wg_no_money}
+        msg += f"""WG акт/нет конф/нет средств {wg_active}/{wg_no_config}/{wg_no_money}
 
-OL {ol_active}/{ol_no_config}/{ol_no_limit}\n\n"""
+OL акт/нет ключей/нет трафика {ol_active}/{ol_no_config}/{ol_no_limit}\n\n"""
     print(time.time() - start)
     for admin in ADMINS:
         await bot.send_message(admin, msg)
