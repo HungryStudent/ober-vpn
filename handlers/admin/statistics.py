@@ -10,12 +10,16 @@ async def statistics(call: CallbackQuery):
     await call.answer()
 
     users = await db.get_users()
-    formatted_users = [
-        {
-            "username": user["username"],
-            "tg_id": f'<code>{user["user_id"]}</code>',
-            "balance": user["balance"]
-        }
-        for user in users]
+
+    msg = """<b>Статистика</b>
+| username
+| tg_id
+| balance\n\n"""
+
+    for row in users:
+        msg += f"""| {row["username"]}
+| {f'<code>{row["user_id"]}</code>'}
+| {row["balance"]}\n\n"""
+
     await call.message.answer(
-        f'<b>Статистика</b>\n\n{tabulate(formatted_users, tablefmt="jira", numalign="left")}')
+        f'<b>Статистика</b>\n\n{msg}')
