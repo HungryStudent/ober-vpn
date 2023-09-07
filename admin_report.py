@@ -22,7 +22,7 @@ async def create_report():
     if today_users is None:
         today_users = []
     msg = f"""Общее количество клиентов - {len(users)}
-    Количество клиентов пришедших за день - {len(today_users)}\n\n"""
+Количество клиентов пришедших за день - {len(today_users)}\n\n"""
     all_active = 0
     all_inactive = 0
     wg_active = 0
@@ -52,9 +52,9 @@ async def create_report():
                 ol_no_limit += 1
     msg += f"""Активные/Неактивные - {all_active}/{all_inactive}
 
-    WG акт/нет конф/нет средств {wg_active}/{wg_no_config}/{wg_no_money}
+WG акт/нет конф/нет средств {wg_active}/{wg_no_config}/{wg_no_money}
 
-    OL акт/нет ключей/нет трафика {ol_active}/{ol_no_config}/{ol_no_limit}\n\n"""
+OL акт/нет ключей/нет трафика {ol_active}/{ol_no_config}/{ol_no_limit}\n\n"""
     print(time.time() - start)
     countries = await db.get_countries()
     for country in countries:
@@ -63,8 +63,8 @@ async def create_report():
 
         msg += f"""{country["name"]}:
 
-    Общее количество клиентов - {len(users)}
-    Количество клиентов пришедших за день - {len(today_users)}\n\n"""
+Общее количество клиентов - {len(users)}
+Количество клиентов пришедших за день - {len(today_users)}\n\n"""
         all_active = 0
         all_inactive = 0
         wg_active = 0
@@ -94,7 +94,7 @@ async def create_report():
                     ol_no_limit += 1
         msg += f"""WG акт/нет конф/нет средств {wg_active}/{wg_no_config}/{wg_no_money}
 
-    OL акт/нет ключей/нет трафика {ol_active}/{ol_no_config}/{ol_no_limit}\n\n"""
+OL акт/нет ключей/нет трафика {ol_active}/{ol_no_config}/{ol_no_limit}\n\n"""
     print(time.time() - start)
     return msg
 
