@@ -30,8 +30,8 @@ async def main():
             await db.update_user_balance(user["user_id"], -amount)
             await db.add_history_record(user["user_id"], amount, "Оплата конфигов")
             await db.set_devices_has_first_payment(user["user_id"])
-        session = await bot.get_session()
-        await session.close()
+    session = await bot.get_session()
+    await session.close()
 
 
 if __name__ == '__main__':
