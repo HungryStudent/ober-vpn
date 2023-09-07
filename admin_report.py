@@ -3,7 +3,7 @@ import time
 
 import database as db
 import utils.server as server_utils
-from config_parser import wireguard_price
+from config_parser import wireguard_price, ADMINS
 from create_bot import bot
 from keyboards import user as user_kb
 from utils import devices
@@ -92,7 +92,8 @@ OL {ol_active}/{ol_no_config}/{ol_no_limit}\n\n"""
 
 OL {ol_active}/{ol_no_config}/{ol_no_limit}\n\n"""
     print(time.time() - start)
-    await bot.send_message(796644977, msg)
+    for admin in ADMINS:
+        await bot.send_message(admin, msg)
     session = await bot.get_session()
     await session.close()
 
