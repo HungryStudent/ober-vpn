@@ -53,7 +53,6 @@ Outline {outline_status} {outline_desc}
 
 @dp.message_handler(commands=['start'], state="*")
 async def start_command(message: Message, state: FSMContext):
-    print("aksldmalksdm")
     await state.finish()
     user = await db.get_user(message.from_user.id)
 
@@ -173,8 +172,17 @@ async def history(call: CallbackQuery, state: FSMContext):
             "msg": row["msg"]
         }
         for row in history]
-    formatted_history.insert(0, {"datetime": "Дата", "amount": "₽", "msg": "ТИП"})
+
+    msg = """<b>Статистика</b>
+| Дата
+| ТИП
+| ₽\n\n"""
+
+    for row in history:
+        msg += f"""| {row['datetime'].strftime("%d.%m.%Y %H:%M:%S")}
+| {row['msg']}
+| {row['amount']}\n\n"""
     await call.message.answer(
-        f'<b>Статистика</b>\n\n<pre>{tabulate(formatted_history, tablefmt="jira", numalign="left")}</pre>',
+        f'<pre>{msg}</pre>',
         reply_markup=user_kb.show_menu)
     await call.answer()
