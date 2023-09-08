@@ -186,7 +186,7 @@ async def new_device_country(call: CallbackQuery, state: FSMContext, callback_da
             await db.set_has_free_outline(call.from_user.id, False)
         else:
             price = outline_prices[data["limit"]]
-        await db.add_history_record(call.from_user.id, price, "Создание конфига")
+            await db.add_history_record(call.from_user.id, price, "Создание ключа")
     await db.update_user_balance(call.from_user.id, -price)
 
     await state.finish()
