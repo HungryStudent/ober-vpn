@@ -104,12 +104,17 @@ async def show_menu(call: CallbackQuery, state: FSMContext):
     await state.finish()
     user = await db.get_user(call.from_user.id)
     menu_stats = await utils.devices.get_stats_for_menu(user)
+    if user["has_free_outline"]:
+        free_outline = "\n<b><u>Вам доступно 5ГБ трафика Outline бесплатно.</u></b>\n"
+    else:
+        free_outline = ""
     msg = start_msgs["exists"].format(firstname=call.from_user.first_name, balance=user["balance"],
                                       days=menu_stats["days"],
                                       wireguard_status=menu_stats["wireguard_status"],
                                       wireguard_desc=menu_stats["wireguard_desc"],
                                       outline_status=menu_stats["outline_status"],
-                                      outline_desc=menu_stats["outline_desc"])
+                                      outline_desc=menu_stats["outline_desc"],
+                                      free_outline=free_outline)
     await call.message.answer(msg, reply_markup=user_kb.menu)
     await call.answer()
 
