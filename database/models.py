@@ -13,7 +13,9 @@ async def create_models():
                        "balance NUMERIC DEFAULT 100,"
                        "inviter_id BIGINT,"
                        "is_banned BOOLEAN DEFAULT FALSE,"
-                       "is_wireguard_active BOOLEAN DEFAULT TRUE)")
+                       "is_wireguard_active BOOLEAN DEFAULT TRUE,"
+                       "has_free_outline BOOLEAN DEFAULT TRUE,"
+                       "is_admin BOOLEAN DEFAULT FALSE)")
     await conn.execute("CREATE TABLE IF NOT EXISTS countries("
                        "country_id SMALLSERIAL PRIMARY KEY,"
                        "name VARCHAR(32))")

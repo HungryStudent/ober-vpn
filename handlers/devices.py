@@ -6,7 +6,7 @@ from aiogram.types import Message, CallbackQuery
 
 import database as db
 import keyboards.user as user_kb
-from config_parser import outline_prices
+from config_parser import outline_prices, FREE_LIMIT
 from create_bot import dp
 from states.user import NewDevice
 from utils import server as server_utils
@@ -59,7 +59,7 @@ Outline (OL):
 100 ГБ: 249 руб
 500 ГБ: 999 руб
 1000 ГБ: 1500 руб
-
+{free_outline}
 ⚠ Списание разовое. Осуществляется сразу.
 Дополнительные ГБ можно докупить на этот же ключ.
 Чтобы получить ключ и узнать остаток трафика, нажмите на имя устройства."""
@@ -69,7 +69,12 @@ Outline (OL):
 async def msg_device_menu(message: Message, state: FSMContext):
     await state.finish()
     devices = await db.get_devices_by_user_id(message.from_user.id)
-    await message.answer(menu_text,
+    user = await db.get_user(call.from_user.id)
+    if user["has_free_outline"]:
+        free_outline = "\n<b><u>Вам доступно 5ГБ трафика Outline бесплатно.</u></b>\n"
+    else:
+        free_outline = ""
+    await message.answer(menu_text.format(free_outline=free_outline),
                          reply_markup=user_kb.get_devices(devices))
 
 
@@ -77,7 +82,12 @@ async def msg_device_menu(message: Message, state: FSMContext):
 async def devices_menu(call: CallbackQuery, state: FSMContext):
     await state.finish()
     devices = await db.get_devices_by_user_id(call.from_user.id)
-    await call.message.answer(menu_text,
+    user = await db.get_user(call.from_user.id)
+    if user["has_free_outline"]:
+        free_outline = "\n<b><u>Вам доступно 5ГБ трафика Outline бесплатно.</u></b>\n"
+    else:
+        free_outline = ""
+    await call.message.answer(menu_text.format(free_outline=free_outline),
                               reply_markup=user_kb.get_devices(devices))
     await call.answer()
 
@@ -99,7 +109,8 @@ async def new_device_device_type(call: CallbackQuery, state: FSMContext):
     user = await db.get_user(call.from_user.id)
     await state.update_data(device_type=call.data)
     if call.data == "outline":
-        await call.message.edit_text("Выберите трафик:", reply_markup=user_kb.limit)
+        await call.message.edit_text("Выберите трафик:",
+                                     reply_markup=user_kb.get_limit(has_free_limit=user["has_free_outline"]))
         return await state.set_state(NewDevice.limit)
 
     await state.update_data(device_type=call.data)
@@ -114,7 +125,7 @@ async def new_device_device_type(call: CallbackQuery, state: FSMContext):
 async def new_device_limit(call: CallbackQuery, state: FSMContext, callback_data: dict):
     limit = int(callback_data["value"])
     user = await db.get_user(call.from_user.id)
-    if user["balance"] < outline_prices[limit]:
+    if limit != FREE_LIMIT and user["balance"] < outline_prices[limit]:
         await call.message.edit_text("Недостаточно баланса для создания ключа", reply_markup=user_kb.show_menu)
         return await state.finish()
     await state.update_data(limit=limit)
@@ -155,12 +166,27 @@ async def new_device_country(call: CallbackQuery, state: FSMContext, callback_da
         os.remove(f"OberVPN_{call.from_user.id}_{device_id}.conf")
         price = 0
     elif data["device_type"] == "outline":
+        try:
+            is_first_device = data["first_device"]
+        except KeyError:
+            is_first_device = False
+        msg = ""
+        if is_first_device:
+            msg = "Вам достуно 5ГБ трафика бесплатно.\n\n"
+            limit = FREE_LIMIT
+        else:
+            limit = data["limit"]
         outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
-        outline_client = outline_manager.create_client(call.from_user.id, data["limit"])
-        await call.message.answer(outline_client["accessUrl"],
+        outline_client = outline_manager.create_client(call.from_user.id, limit)
+        await call.message.answer(msg + f"""Нажмите на ключ ниже, чтобы скопировать его 👇
+<code>{outline_client['accessUrl']}</code>""",
                                   reply_markup=user_kb.show_menu)
         await db.set_outline_id(device_id, outline_client["id"])
-        price = outline_prices[data["limit"]]
+        if limit == FREE_LIMIT:
+            price = 0
+            await db.set_has_free_outline(call.from_user.id, False)
+        else:
+            price = outline_prices[data["limit"]]
         await db.add_history_record(call.from_user.id, price, "Создание конфига")
     await db.update_user_balance(call.from_user.id, -price)
 
@@ -222,6 +248,7 @@ async def device_menu(call: CallbackQuery, state: FSMContext, callback_data: dic
         os.remove(f"OberVPN_{call.from_user.id}_{device_id}.png")
         os.remove(f"OberVPN_{call.from_user.id}_{device_id}.conf")
     elif device["device_type"] == "outline":
+        user = await db.get_user(call.from_user.id)
         outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
         outline_client = outline_manager.get_client(device["outline_id"])
         if outline_client is None:
@@ -233,7 +260,8 @@ async def device_menu(call: CallbackQuery, state: FSMContext, callback_data: dic
         await call.message.answer(f"""Использовано {usage_gb}/{limit_gb}ГБ
 
 Нажмите на ключ ниже, чтобы скопировать его 👇
-<code>{outline_client['accessUrl']}</code>""", reply_markup=user_kb.get_add_limit(device_id))
+<code>{outline_client['accessUrl']}</code>""", reply_markup=user_kb.get_add_limit(device_id, has_free_limit=user[
+            "has_free_outline"]))
 
     await call.answer()
 
@@ -254,14 +282,21 @@ async def accept_add_limit(call: CallbackQuery, state: FSMContext, callback_data
     user = await db.get_user(call.from_user.id)
     if value == 0:
         return await call.message.answer("Вы отказались от добавления трафика", reply_markup=user_kb.show_menu)
-    if user["balance"] < outline_prices[value]:
+    if value != FREE_LIMIT and user["balance"] < outline_prices[value]:
         return await call.message.answer("Недостаточно средств на балансе", reply_markup=user_kb.show_menu)
+    if value == FREE_LIMIT and not user["has_free_outline"]:
+        await call.answer()
+        return await call.message.answer("Произошла ошибка!")
+
     device = await db.get_device(device_id)
     server = await db.get_server(device["server_id"])
     outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
     outline_client = outline_manager.get_client(device["outline_id"])
     outline_manager.set_data_limit(device["outline_id"], outline_client['dataLimit']['bytes'] // (1000 ** 3) + value)
-    await db.update_user_balance(call.from_user.id, -outline_prices[value])
-    await db.add_history_record(call.from_user.id, -outline_prices[value], "Продление лимита")
+    if value == FREE_LIMIT:
+        await db.set_has_free_outline(call.from_user.id, False)
+    else:
+        await db.update_user_balance(call.from_user.id, -outline_prices[value])
+        await db.add_history_record(call.from_user.id, -outline_prices[value], "Продление лимита")
     await call.message.answer("Лимит успешно увеличен!", reply_markup=user_kb.show_menu)
     await call.answer()

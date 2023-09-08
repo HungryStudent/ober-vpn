@@ -17,6 +17,7 @@ admin_device = CallbackData("admin_device", "device_id")
 admin_add_limit = CallbackData("admin_add_limit", "device_id", "value")
 ban_user = CallbackData("ban_user", "user_id", "action")
 delete_user_action = CallbackData("delete_user", "user_id", "action")
+change_admin = CallbackData("change_admin", "action")
 
 mailing = InlineKeyboardMarkup(row_width=2).add(
     InlineKeyboardButton("Да, начать рассылку", callback_data="start_mailing"),
@@ -31,7 +32,12 @@ menu = InlineKeyboardMarkup(row_width=1).add(InlineKeyboardButton("Сервер�
                                              InlineKeyboardButton("Бан/Разбан", callback_data="admin_ban"),
                                              InlineKeyboardButton("Изменить баланс", callback_data="admin_balance"),
                                              InlineKeyboardButton("Удалить пользователя", callback_data="delete_user"),
-                                             InlineKeyboardButton("Ежедневный отчет", callback_data="report"))
+                                             InlineKeyboardButton("Ежедневный отчет", callback_data="report"),
+                                             InlineKeyboardButton("Админы", callback_data="admins"))
+
+admins_menu = InlineKeyboardMarkup(row_width=1).add(
+    InlineKeyboardButton("Добавить админа", callback_data=change_admin.new("add")),
+    InlineKeyboardButton("Удалить админа", callback_data=change_admin.new("delete")))
 
 
 def get_countries(countries):

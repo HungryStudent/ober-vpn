@@ -5,8 +5,6 @@ import qrcode as qrcode
 import requests
 from outline_api import Manager
 
-from config_parser import outline_limit
-
 
 async def execute_command(command, has_resp=False):
     proc = await asyncio.create_subprocess_shell(

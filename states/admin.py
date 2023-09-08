@@ -37,3 +37,7 @@ class ChangeBalanceUser(StatesGroup):
 
 class DeleteUser(StatesGroup):
     user_id = State()
+
+
+class ChangeAdmin(StatesGroup):
+    user_id = State()

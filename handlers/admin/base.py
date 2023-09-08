@@ -54,7 +54,7 @@ async def balance_user(message: Message, state: FSMContext):
     await message.answer("Баланс изменен")
 
 
-@dp.callback_query_handler(text="report")
+@dp.callback_query_handler(is_admin=True, text="report")
 async def report(call: CallbackQuery, state: FSMContext):
     await call.message.answer("Отчёт подгружается...")
     async with aiohttp.ClientSession() as session:

@@ -1,4 +1,5 @@
 from asyncpg import Connection
+
 from database import get_conn
 
 
@@ -21,6 +22,13 @@ async def get_users():
 async def get_today_users():
     conn: Connection = await get_conn()
     rows = await conn.fetch("SELECT * FROM users WHERE reg_time::date = NOW()::date")
+    await conn.close()
+    return rows
+
+
+async def get_users_with_admin():
+    conn: Connection = await get_conn()
+    rows = await conn.fetch("SELECT * FROM users WHERE is_admin = TRUE")
     await conn.close()
     return rows
 
@@ -62,6 +70,18 @@ async def update_user_balance(user_id, balance_diff):
 async def set_is_banned(user_id, status):
     conn: Connection = await get_conn()
     await conn.execute("UPDATE users SET is_banned = $2 WHERE user_id = $1", user_id, status)
+    await conn.close()
+
+
+async def set_has_free_outline(user_id, status):
+    conn: Connection = await get_conn()
+    await conn.execute("UPDATE users SET has_free_outline = $2 WHERE user_id = $1", user_id, status)
+    await conn.close()
+
+
+async def set_admin_status(user_id, status):
+    conn: Connection = await get_conn()
+    await conn.execute("UPDATE users SET is_admin = $2 WHERE user_id = $1", user_id, status)
     await conn.close()
 
 

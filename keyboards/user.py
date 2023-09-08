@@ -20,12 +20,12 @@ start = InlineKeyboardMarkup(row_width=1).add(InlineKeyboardButton("🎉 ПОД�
 show_menu = InlineKeyboardMarkup(row_width=1).add(InlineKeyboardButton("🏠Главное меню", callback_data="show_menu"))
 
 menu = InlineKeyboardMarkup(row_width=2).add(
-    InlineKeyboardButton("📱Мои устройства", callback_data="devices"),
-    InlineKeyboardButton("💵Пополнить баланс", callback_data="balance_menu")
+    InlineKeyboardButton("📱Мои устройства", callback_data="devices")
 ).add(
     InlineKeyboardButton("📹 Видеоинструкции", callback_data="video_help")
 ).add(
-    InlineKeyboardButton("👨‍⚕Пригласить друга", callback_data="ref_menu")
+    InlineKeyboardButton("💵Пополнить", callback_data="balance_menu"),
+    InlineKeyboardButton("👨‍⚕Пригласить", callback_data="ref_menu")
     # InlineKeyboardButton("Помощь", callback_data="help"),
 
 ).add(InlineKeyboardButton("🧾История платежей", callback_data="history"))
@@ -40,18 +40,13 @@ balance = InlineKeyboardMarkup(row_width=3).add(
     *[InlineKeyboardButton(text=f"{amount}₽", callback_data=payment.new(amount)) for amount in balance_amounts])
 balance.add(InlineKeyboardButton("Указать свою сумму", callback_data=payment.new(0)))
 
-limit = InlineKeyboardMarkup(row_width=2).add(
-    *[InlineKeyboardButton(f"{amount} ГБ: {price} руб", callback_data=limit_data.new(amount))
-      for (amount, price) in outline_prices.items()]
-)
-
 support = InlineKeyboardMarkup(row_width=1).add(
     InlineKeyboardButton("Инструкция по установке", callback_data=help_post.new("install")),
     InlineKeyboardButton("Инструкция по установке", callback_data=help_post.new("install")),
     InlineKeyboardButton("Инструкция по установке", callback_data=help_post.new("install")))
 
-first_device_wg = InlineKeyboardMarkup(row_width=1).add(
-    InlineKeyboardButton("Добавить устройство", callback_data="first_device_wg"))
+first_device = InlineKeyboardMarkup(row_width=1).add(
+    InlineKeyboardButton("Добавить устройство", callback_data="first_device"))
 
 
 def get_devices(devices):
@@ -79,8 +74,21 @@ def get_delete_device(device_id):
     return kb
 
 
-def get_add_limit(device_id):
+def get_limit(has_free_limit=False):
+    kb = InlineKeyboardMarkup(row_width=2)
+    if has_free_limit:
+        kb.add(InlineKeyboardButton("5ГБ: Бесплатно", callback_data=limit_data.new(5)))
+    kb.add(
+        *[InlineKeyboardButton(f"{amount} ГБ: {price} руб", callback_data=limit_data.new(amount))
+          for (amount, price) in outline_prices.items()]
+    )
+    return kb
+
+
+def get_add_limit(device_id, has_free_limit=False):
     kb = InlineKeyboardMarkup(row_width=1)
+    if has_free_limit:
+        kb.add(InlineKeyboardButton("5ГБ: Бесплатно", callback_data=add_limit.new(device_id, 5)))
     for (amount, price) in outline_prices.items():
         kb.add(InlineKeyboardButton(f"{amount} ГБ: {price} руб", callback_data=add_limit.new(device_id, amount)))
     kb.add(InlineKeyboardButton("🏠Главное меню", callback_data="show_menu"))

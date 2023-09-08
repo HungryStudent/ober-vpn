@@ -6,3 +6,4 @@ from .statistics import *
 from .devices import *
 from .balance import *
 from .ban import *
+from .admins import *

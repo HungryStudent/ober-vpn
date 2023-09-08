@@ -14,7 +14,7 @@ start_msgs = {"exists": """Приветствуем вас снова, {firstnam
 💵Баланс {balance}₽ 
 WireGuard {wireguard_status} {wireguard_desc} (~{days} дней)
 Outline {outline_status} {outline_desc}
-
+{free_outline}
 <b>ВНИМАНИЕ!</b>
 Из-за блокировок в России, WireGuard нестабилен, особенно при мобильном интернете. Рекомендуем Outline.
 
@@ -76,12 +76,17 @@ async def start_command(message: Message, state: FSMContext):
                                  inviter_id)
     else:
         menu_stats = await utils.devices.get_stats_for_menu(user)
+        if user["has_free_outline"]:
+            free_outline = "\n<b><u>Вам доступно 5ГБ трафика Outline бесплатно.</u></b>\n"
+        else:
+            free_outline = ""
         msg = start_msgs["exists"].format(firstname=message.from_user.first_name, balance=user["balance"],
                                           days=menu_stats["days"],
                                           wireguard_status=menu_stats["wireguard_status"],
                                           wireguard_desc=menu_stats["wireguard_desc"],
                                           outline_status=menu_stats["outline_status"],
-                                          outline_desc=menu_stats["outline_desc"]
+                                          outline_desc=menu_stats["outline_desc"],
+                                          free_outline=free_outline
                                           )
         kb = user_kb.menu
 
@@ -113,14 +118,16 @@ async def show_menu(call: CallbackQuery, state: FSMContext):
 async def start_vpn(call: CallbackQuery, state: FSMContext):
     await state.finish()
     await call.message.edit_text("""🎉Поздравляем, Вы активировали аккаунт OberVPN, 100₽ у Вас на балансе! 
+И мы Вам дарим 5ГБ трафика Outline VPN.
 
-Теперь давайте настроим Ваш VPN.""", reply_markup=user_kb.first_device_wg)
+Теперь давайте настроим Вам Outline VPN..""", reply_markup=user_kb.first_device)
 
 
-@dp.callback_query_handler(text="first_device_wg")
-async def first_device_wg(call: CallbackQuery, state: FSMContext):
+@dp.callback_query_handler(text="first_device")
+async def first_device(call: CallbackQuery, state: FSMContext):
     await state.set_state(NewDevice.name)
-    await state.update_data(device_type="wireguard")
+    await state.update_data(device_type="outline")
+    await state.update_data(first_device=True)
     await call.message.edit_text("""Пример названия устройства:
 «Мой телефон» или «Мой MacBook»
 

@@ -5,7 +5,7 @@ from config_parser import TOKEN
 from aiogram import Bot
 import logging
 
-from filters.IsAdminFilter import IsAdminFilter
+from filters.IsAdminFilter import IsAdminFilter, IsSuperAdminFilter
 import urllib3
 import middlewares
 
@@ -19,4 +19,5 @@ stor = MemoryStorage()
 bot = Bot(token=TOKEN, parse_mode="HTML")
 dp = Dispatcher(bot, storage=stor)
 dp.filters_factory.bind(IsAdminFilter)
+dp.filters_factory.bind(IsSuperAdminFilter)
 dp.middleware.setup(middlewares.BanMiddleware())
