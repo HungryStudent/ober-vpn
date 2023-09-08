@@ -44,7 +44,7 @@ async def change_admin(message: Message, state: FSMContext):
         commands = [BotCommand(command='/start', description="🏠Главное меню"),
                     BotCommand(command='/devices', description="📱Мои устройства"),
                     BotCommand(command='/topup', description="💵Пополнить баланс"),
-                    BotCommand(command='/invite', description="👨‍⚕Пригласить друга"),
+                    BotCommand(command='/invite', description="🧍‍♂️Пригласить друга"),
                     BotCommand(command='/admin', description="Админка")]
         try:
             await message.bot.set_my_commands(commands,

@@ -25,7 +25,7 @@ menu = InlineKeyboardMarkup(row_width=2).add(
     InlineKeyboardButton("📹 Видеоинструкции", callback_data="video_help")
 ).add(
     InlineKeyboardButton("💵Пополнить", callback_data="balance_menu"),
-    InlineKeyboardButton("👨‍⚕Пригласить", callback_data="ref_menu")
+    InlineKeyboardButton("🧍‍♂️Пригласить", callback_data="ref_menu")
     # InlineKeyboardButton("Помощь", callback_data="help"),
 
 ).add(InlineKeyboardButton("🧾История платежей", callback_data="history"))

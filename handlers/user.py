@@ -40,7 +40,7 @@ Outline {outline_status} {outline_desc}
 
               "new_invite": """"Приветствуем Вас, {firstname}!
 
-Вас пригласил сюда {inviter_firstname}, поэтому он получил 50₽ на свой баланс! А мы вам дарим 100₽ на баланс!
+Вас пригласил сюда {inviter_firstname}, поэтому он получил 50₽ на свой баланс! А мы Вам дарим 100₽ на баланс!
 
 🚀Высокая скорость
 🌐Свободный доступ к сайтам 
@@ -123,9 +123,9 @@ async def show_menu(call: CallbackQuery, state: FSMContext):
 async def start_vpn(call: CallbackQuery, state: FSMContext):
     await state.finish()
     await call.message.edit_text("""🎉Поздравляем, Вы активировали аккаунт OberVPN, 100₽ у Вас на балансе! 
-И мы Вам дарим 5ГБ трафика Outline VPN.
+И еще мы Вам дарим 5ГБ трафика Outline VPN.
 
-Теперь давайте настроим Вам Outline VPN..""", reply_markup=user_kb.first_device)
+Теперь давайте настроим Вам Outline VPN.""", reply_markup=user_kb.first_device)
 
 
 @dp.callback_query_handler(text="first_device")

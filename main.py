@@ -13,7 +13,7 @@ async def on_startup(_):
     commands = [BotCommand(command='/start', description="🏠Главное меню"),
                 BotCommand(command='/devices', description="📱Мои устройства"),
                 BotCommand(command='/topup', description="💵Пополнить баланс"),
-                BotCommand(command='/invite', description="👨‍⚕Пригласить друга")]
+                BotCommand(command='/invite', description="🧍‍♂️Пригласить друга")]
     await bot.set_my_commands(commands)
     commands.append(BotCommand(command='/admin', description="Админка"))
     for admin_id in ADMINS:
