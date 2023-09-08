@@ -68,7 +68,7 @@ Outline (OL):
 async def msg_device_menu(message: Message, state: FSMContext):
     await state.finish()
     devices = await db.get_devices_by_user_id(message.from_user.id)
-    user = await db.get_user(call.from_user.id)
+    user = await db.get_user(message.from_user.id)
     if user["has_free_outline"]:
         free_outline = "\n<b><u>Вам доступно 5ГБ трафика Outline бесплатно.</u></b>\n"
     else:
