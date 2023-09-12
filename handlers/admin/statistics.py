@@ -1,3 +1,5 @@
+import asyncio
+
 from aiogram.types import CallbackQuery
 from tabulate import tabulate
 
@@ -38,4 +40,5 @@ async def statistics(call: CallbackQuery):
 
         await call.message.answer(
             f'<b>Статистика</b>\n\n{msg}')
+        await asyncio.sleep(0.1)
         msg = ""
