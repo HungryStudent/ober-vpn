@@ -4,14 +4,16 @@ config = configparser.ConfigParser()
 config.read("settings.ini")
 TOKEN = config["settings"]["TOKEN"]
 ADMINS = [int(admin) for admin in config["settings"]["admins"].split(",")]
-outline_prices = {int(price.split("|")[0]): int(price.split("|")[1]) for price in
-                  config["settings"]["outline_prices"].split(",")}
-outline_limit = int(config["settings"]["outline_limit"])
 wireguard_price = float(config["settings"]["wireguard_price"])
 BOT_NAME = config["settings"]["BOT_NAME"]
 YOOKASSA_TOKEN = config["settings"]["YOOKASSA_TOKEN"]
 YOOKASSA_SHOP_ID = int(config["settings"]["YOOKASSA_SHOP_ID"])
-FREE_LIMIT = int(config["settings"]["FREE_LIMIT"])
+
+outline_prices = {
+    "1": {"name": "Бронза", "price": 100, "limit": 150},
+    "2": {"name": "Серебро", "price": 170, "limit": 300},
+    "3": {"name": "Золото", "price": 250, "limit": 500}
+}
 
 
 class DB:

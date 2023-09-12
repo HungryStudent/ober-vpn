@@ -1,12 +1,12 @@
 import os
-from datetime import date
+from datetime import date, timedelta, datetime
 
 from aiogram.dispatcher import FSMContext
 from aiogram.types import Message, CallbackQuery
 
 import database as db
 import keyboards.user as user_kb
-from config_parser import outline_prices, FREE_LIMIT
+from config_parser import outline_prices, wireguard_price
 from create_bot import dp
 from states.user import NewDevice
 from utils import server as server_utils
@@ -49,18 +49,16 @@ instructions = {
 menu_text = """Устройства и Тарифы:
     
 WireGuard (WG):
-1 конфиг: 100 руб/30 дней (3,33 руб/день, ежедневное списание).
-⚠ Баланс распределяется между всеми конфигами.
-<b>Для получения настроек нажмите на имя устройства.</b>
+1 конфиг — 30 дней Цена 100 руб.
+⚠️ Оплата продлевается автоматически по окончанию месяца.
+<b>Чтобы получить QR код с конфигом, нажмите на имя устройства.</b>
 
-Outline (OL):
-50 ГБ: 150 руб
-100 ГБ: 249 руб
-500 ГБ: 999 руб
-1000 ГБ: 1500 руб
-{free_outline}
-⚠ Списание разовое. Осуществляется сразу.
-Дополнительные ГБ можно докупить на этот же ключ.
+Outline (OL) Тарифы:
+Бронза    — 30 дней/150ГБ Цена 100 руб
+Серебро — 30 дней/300ГБ Цена 170 руб
+Золото    — 30 дней/500ГБ Цена 250 руб
+
+⚠️ Оплата продлевается автоматически по окончанию месяца.
 <b>Чтобы получить ключ и <u>узнать остаток трафика</u>, нажмите на имя устройства.</b>"""
 
 
@@ -68,26 +66,16 @@ Outline (OL):
 async def msg_device_menu(message: Message, state: FSMContext):
     await state.finish()
     devices = await db.get_devices_by_user_id(message.from_user.id)
-    user = await db.get_user(message.from_user.id)
-    if user["has_free_outline"]:
-        free_outline = "\n<b><u>Вам доступно 5ГБ трафика Outline бесплатно.</u></b>\n"
-    else:
-        free_outline = ""
-    await message.answer(menu_text.format(free_outline=free_outline),
-                         reply_markup=user_kb.get_devices(devices))
+    await message.answer(menu_text,
+                         reply_markup=await user_kb.get_devices(devices))
 
 
 @dp.callback_query_handler(text="devices")
 async def devices_menu(call: CallbackQuery, state: FSMContext):
     await state.finish()
     devices = await db.get_devices_by_user_id(call.from_user.id)
-    user = await db.get_user(call.from_user.id)
-    if user["has_free_outline"]:
-        free_outline = "\n<b><u>Вам доступно 5ГБ трафика Outline бесплатно.</u></b>\n"
-    else:
-        free_outline = ""
-    await call.message.answer(menu_text.format(free_outline=free_outline),
-                              reply_markup=user_kb.get_devices(devices))
+    await call.message.answer(menu_text,
+                              reply_markup=await user_kb.get_devices(devices))
     await call.answer()
 
 
@@ -108,10 +96,15 @@ async def new_device_device_type(call: CallbackQuery, state: FSMContext):
     user = await db.get_user(call.from_user.id)
     await state.update_data(device_type=call.data)
     if call.data == "outline":
-        await call.message.edit_text("Выберите трафик:",
-                                     reply_markup=user_kb.get_limit(has_free_limit=user["has_free_outline"]))
+        await call.message.edit_text("""Выберите тариф:
+Бронза    — 30 дней/150ГБ Цена 100 руб
+Серебро — 30 дней/300ГБ Цена 170 руб
+Золото    — 30 дней/500ГБ Цена 250 руб""",
+                                     reply_markup=user_kb.get_limit())
         return await state.set_state(NewDevice.limit)
-
+    elif user["balance"] <= wireguard_price:
+        await call.message.edit_text("Недостаточно баланса для создания конфига", reply_markup=user_kb.show_menu)
+        return await state.finish()
     await state.update_data(device_type=call.data)
     await state.set_state(NewDevice.name)
     await call.message.edit_text("""Пример названия устройства:
@@ -122,12 +115,12 @@ async def new_device_device_type(call: CallbackQuery, state: FSMContext):
 
 @dp.callback_query_handler(user_kb.limit_data.filter(), state=NewDevice.limit)
 async def new_device_limit(call: CallbackQuery, state: FSMContext, callback_data: dict):
-    limit = int(callback_data["value"])
+    product_id = callback_data["value"]
     user = await db.get_user(call.from_user.id)
-    if limit != FREE_LIMIT and user["balance"] < outline_prices[limit]:
+    if user["balance"] < outline_prices[product_id]["price"]:
         await call.message.edit_text("Недостаточно баланса для создания ключа", reply_markup=user_kb.show_menu)
         return await state.finish()
-    await state.update_data(limit=limit)
+    await state.update_data(product_id=product_id)
     await state.set_state(NewDevice.name)
     await call.message.edit_text("""Пример названия устройства:
 «Мой телефон» или «Мой MacBook»
@@ -148,11 +141,18 @@ async def new_device_name(message: Message, state: FSMContext):
 @dp.callback_query_handler(user_kb.new_device_country.filter(), state=NewDevice.country)
 async def new_device_country(call: CallbackQuery, state: FSMContext, callback_data: dict):
     data = await state.get_data()
+    product_id = data["product_id"] if "product_id" in data else None
+    device_limit = None
+    if product_id is not None:
+        device_limit = outline_prices[product_id]["limit"]
     country_id = int(callback_data["country_id"])
     server = await db.get_current_server_by_country_id(country_id)
-    device_id = await db.add_new_device(call.from_user.id, data["device_type"], data["name"], server["server_id"])
+    sub_time = datetime.now() + timedelta(days=30)
+    device_id = await db.add_new_device(call.from_user.id, data["device_type"], data["name"], server["server_id"],
+                                        sub_time, product_id, device_limit)
     await call.message.edit_text("Девайс успешно создан", reply_markup=user_kb.show_menu)
     price = 0
+    history_msg = "Создание конфига"
     await call.message.answer(instructions[data["device_type"]], disable_web_page_preview=True)
     if data["device_type"] == "wireguard":
         await server_utils.create_wireguard_config(server["ip_address"], server["server_password"], device_id)
@@ -163,33 +163,32 @@ async def new_device_country(call: CallbackQuery, state: FSMContext, callback_da
                                            reply_markup=user_kb.show_menu)
         os.remove(f"OberVPN_{call.from_user.id}_{device_id}.png")
         os.remove(f"OberVPN_{call.from_user.id}_{device_id}.conf")
-        price = 0
+        price = wireguard_price
+        history_msg = "Создание конфига"
     elif data["device_type"] == "outline":
-        try:
-            is_first_device = data["first_device"]
-        except KeyError:
-            is_first_device = False
-        msg = ""
-        if is_first_device:
-            msg = "Вам достуно 5ГБ трафика бесплатно.\n\n"
-            limit = FREE_LIMIT
-        else:
-            limit = data["limit"]
+        product = outline_prices[data["product_id"]]
+        limit = product["limit"]
+        price = product["price"]
         outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
         outline_client = outline_manager.create_client(call.from_user.id, limit)
-        await call.message.answer(msg + f"""Нажмите на ключ ниже, чтобы скопировать его 👇
+        await call.message.answer(f"""Нажмите на ключ ниже, чтобы скопировать его 👇
 <code>{outline_client['accessUrl']}</code>""",
                                   reply_markup=user_kb.show_menu)
         await db.set_outline_id(device_id, outline_client["id"])
-        if limit == FREE_LIMIT:
-            price = 0
-            await db.set_has_free_outline(call.from_user.id, False)
-        else:
-            price = outline_prices[data["limit"]]
-            await db.add_history_record(call.from_user.id, price, "Создание ключа")
+        history_msg = "Создание ключа"
+
+    await db.add_history_record(call.from_user.id, price, history_msg)
     await db.update_user_balance(call.from_user.id, -price)
 
     await state.finish()
+
+
+@dp.callback_query_handler(text="delete_device")
+async def delete_device_start(call: CallbackQuery, state: FSMContext):
+    devices = await db.get_devices_by_user_id(call.from_user.id)
+    await call.message.answer("«Выберите устройство, которое вы хотите удалить:",
+                              reply_markup=await user_kb.get_delete_devices(devices))
+    await call.answer()
 
 
 @dp.callback_query_handler(user_kb.delete_device.filter())
@@ -204,9 +203,17 @@ async def delete_device(call: CallbackQuery, state: FSMContext, callback_data: d
         usage_gb = outline_client_usage // (1000 ** 3)
         limit_gb = outline_client['dataLimit']['bytes'] // (1000 ** 3)
         remaining_gb = limit_gb - usage_gb
-        if usage_gb < limit_gb:
+        if usage_gb < limit_gb or datetime.now() < device["sub_time"]:
+            await call.answer()
             return await call.message.answer(
-                f"""Невозможно удалить устройство, пока у Вас есть свободный остаток трафика. Остаток трафика {remaining_gb}ГБ""")
+                f"""Невозможно удалить устройство, пока у Вас есть свободный остаток трафика. Остаток трафика {remaining_gb}ГБ""",
+                reply_markup=user_kb.show_menu)
+    else:
+        if datetime.now() < device["sub_time"]:
+            await call.answer()
+            return await call.message.answer(
+                f"""Невозможно удалить устройство, пока у Вас есть оставшиеся дни""",
+                reply_markup=user_kb.show_menu)
     await call.message.answer("Вы действительно хотите удалить устройство?",
                               reply_markup=user_kb.get_delete_device(device_id))
     await call.answer()
@@ -238,16 +245,29 @@ async def device_menu(call: CallbackQuery, state: FSMContext, callback_data: dic
     device = await db.get_device(device_id)
     server = await db.get_server(device["server_id"])
     await call.message.answer(instructions[device["device_type"]], disable_web_page_preview=True)
+    if device["has_auto_renewal"]:
+        auto_renewal_text = "Автопродление включено"
+    else:
+        auto_renewal_text = "Автопродление отключено"
     if device["device_type"] == "wireguard":
         await server_utils.get_wireguard_config(server["ip_address"], server["server_password"], device_id,
                                                 call.from_user.id)
         await call.message.answer_photo(open(f"OberVPN_{call.from_user.id}_{device_id}.png", "rb"))
-        await call.message.answer_document(open(f"OberVPN_{call.from_user.id}_{device_id}.conf", "rb"),
-                                           reply_markup=user_kb.show_menu)
+        days = (device["sub_time"] - datetime.today()).days
+        active = ""
+        is_active = True
+        if days <= 0:
+            is_active = False
+            active = "\nКонфиг неактивен\n\n"
+
+        # await call.message.answer_document(open(f"OberVPN_{call.from_user.id}_{device_id}.conf", "rb"),
+        #                                    caption=f"{active}{auto_renewal_text}",
+        #                                    reply_markup=user_kb.show_menu)
+        await call.message.answer(text=f"{active}{auto_renewal_text}",
+                                  reply_markup=user_kb.get_wg_device(device, is_active))
         os.remove(f"OberVPN_{call.from_user.id}_{device_id}.png")
         os.remove(f"OberVPN_{call.from_user.id}_{device_id}.conf")
     elif device["device_type"] == "outline":
-        user = await db.get_user(call.from_user.id)
         outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
         outline_client = outline_manager.get_client(device["outline_id"])
         if outline_client is None:
@@ -256,46 +276,164 @@ async def device_menu(call: CallbackQuery, state: FSMContext, callback_data: dic
         outline_client_usage = outline_manager.get_usage_data(outline_client["id"])
         usage_gb = outline_client_usage // (1000 ** 3)
         limit_gb = outline_client['dataLimit']['bytes'] // (1000 ** 3)
-        await call.message.answer(f"""Использовано {usage_gb}/{limit_gb}ГБ
+        days = (device["sub_time"] - datetime.today()).days
+
+        active = ""
+        is_active = True
+        if days <= 0 or usage_gb >= limit_gb:
+            is_active = False
+            active = "\nКлюч неактивен\n"
+        if days < 0:
+            days = 0
+        await call.message.answer(f"""Осталось {days} дней. Использовано {usage_gb}/{limit_gb}ГБ
+{active}
+{auto_renewal_text}
 
 Нажмите на ключ ниже, чтобы скопировать его 👇
-<code>{outline_client['accessUrl']}</code>""", reply_markup=user_kb.get_add_limit(device_id, has_free_limit=user[
-            "has_free_outline"]))
+<code>{outline_client['accessUrl']}</code>""", reply_markup=user_kb.get_outline_device(device, is_active))
 
     await call.answer()
 
 
-@dp.callback_query_handler(user_kb.add_limit.filter())
-async def add_limit(call: CallbackQuery, state: FSMContext, callback_data: dict):
-    device_id = int(callback_data["device_id"])
-    value = int(callback_data["value"])
-    await call.message.answer("Вы действительно хотите увеличить трафик?",
-                              reply_markup=user_kb.get_accept_add_limit(device_id, value))
+@dp.callback_query_handler(user_kb.auto_renewal.filter())
+async def auto_renewal(call: CallbackQuery, state: FSMContext, callback_data: dict):
     await call.answer()
-
-
-@dp.callback_query_handler(user_kb.accept_add_limit.filter())
-async def accept_add_limit(call: CallbackQuery, state: FSMContext, callback_data: dict):
     device_id = int(callback_data["device_id"])
-    value = int(callback_data["value"])
-    user = await db.get_user(call.from_user.id)
-    if value == 0:
-        return await call.message.answer("Вы отказались от добавления трафика", reply_markup=user_kb.show_menu)
-    if value != FREE_LIMIT and user["balance"] < outline_prices[value]:
-        return await call.message.answer("Недостаточно средств на балансе", reply_markup=user_kb.show_menu)
-    if value == FREE_LIMIT and not user["has_free_outline"]:
-        await call.answer()
-        return await call.message.answer("Произошла ошибка!")
-
+    status = True if callback_data["status"] == "True" else False
+    await db.set_has_auto_renewal(device_id, status)
     device = await db.get_device(device_id)
     server = await db.get_server(device["server_id"])
-    outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
-    outline_client = outline_manager.get_client(device["outline_id"])
-    outline_manager.set_data_limit(device["outline_id"], outline_client['dataLimit']['bytes'] // (1000 ** 3) + value)
-    if value == FREE_LIMIT:
-        await db.set_has_free_outline(call.from_user.id, False)
+    if device["has_auto_renewal"]:
+        auto_renewal_text = "Автопродление включено"
     else:
-        await db.update_user_balance(call.from_user.id, -outline_prices[value])
-        await db.add_history_record(call.from_user.id, -outline_prices[value], "Продление лимита")
-    await call.message.answer("Лимит успешно увеличен!", reply_markup=user_kb.show_menu)
+        auto_renewal_text = "Автопродление отключено"
+    if device["device_type"] == "wireguard":
+        await server_utils.get_wireguard_config(server["ip_address"], server["server_password"], device_id,
+                                                call.from_user.id)
+        await call.message.answer_photo(open(f"OberVPN_{call.from_user.id}_{device_id}.png", "rb"))
+        days = (device["sub_time"] - datetime.today()).days
+        active = ""
+        is_active = True
+        if days <= 0:
+            is_active = False
+            active = "\nКонфиг неактивен\n\n"
+
+        # await call.message.edit_caption(open(
+        #                                    caption=f"{active}{auto_renewal_text}",
+        #                                    reply_markup=user_kb.get_wg_device(device, is_active))
+        await call.message.edit_text(text=f"{active}{auto_renewal_text}",
+                                     reply_markup=user_kb.get_wg_device(device, is_active))
+        os.remove(f"OberVPN_{call.from_user.id}_{device_id}.png")
+        os.remove(f"OberVPN_{call.from_user.id}_{device_id}.conf")
+    else:
+        outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
+        outline_client = outline_manager.get_client(device["outline_id"])
+        outline_client_usage = outline_manager.get_usage_data(outline_client["id"])
+        usage_gb = outline_client_usage // (1000 ** 3)
+        limit_gb = outline_client['dataLimit']['bytes'] // (1000 ** 3)
+        days = (device["sub_time"] - datetime.today()).days
+
+        active = ""
+        is_active = True
+        if days <= 0 or usage_gb >= limit_gb:
+            active = "\nКлюч неактивен\n"
+            is_active = False
+        await call.message.edit_text(f"""Осталось {days} дней. Использовано {usage_gb}/{limit_gb}ГБ
+{active}
+{auto_renewal_text}
+
+Нажмите на ключ ниже, чтобы скопировать его 👇
+<code>{outline_client['accessUrl']}</code>""", reply_markup=user_kb.get_outline_device(device, is_active))
+
+
+@dp.callback_query_handler(user_kb.resume_device.filter())
+async def resume_device(call: CallbackQuery, state: FSMContext, callback_data: dict):
+    device_id = int(callback_data["device_id"])
+    device = await db.get_device(device_id)
+    product = outline_prices[device["product_id"]]
+
+    await call.message.answer(f"Тариф {product['name']} Цена {product['price']} руб. Подтвердить?",
+                              reply_markup=user_kb.get_accept_resume_device(device_id))
     await call.answer()
+
+
+@dp.callback_query_handler(user_kb.accept_resume_device.filter())
+async def accept_resume_device(call: CallbackQuery, state: FSMContext, callback_data: dict):
+    device_id = int(callback_data["device_id"])
+    action = callback_data["action"]
+    if action == "cancel":
+        await call.message.edit_text("Вы отказались от возобновления тарифа", reply_markup=user_kb.show_menu)
+        return
+    device = await db.get_device(device_id)
+    product = outline_prices[device["product_id"]]
+    user = await db.get_user(call.from_user.id)
+    if user["balance"] < product["price"]:
+        return await call.message.edit_text("Недостаточно средств", reply_markup=user_kb.show_menu)
+    sub_time = datetime.now() + timedelta(days=30)
+    limit = device["outline_limit"] + product["limit"]
+    await db.set_sub_time(device_id, sub_time)
+    await db.set_outline_limit(device_id, limit)
+    server = await db.get_server(device["server_id"])
+    outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
+    outline_manager.set_data_limit(device["outline_id"], limit)
+    await db.update_user_balance(call.from_user.id, -product["price"])
+    await call.message.edit_text("Тариф возобновлён", reply_markup=user_kb.show_menu)
+
+
+@dp.callback_query_handler(user_kb.extend_device.filter())
+async def extend_device(call: CallbackQuery, state: FSMContext, callback_data: dict):
+    device_id = int(callback_data["device_id"])
+    await call.message.answer(f"Подтвердить?",
+                              reply_markup=user_kb.get_accept_extend_device(device_id))
+    await call.answer()
+
+
+@dp.callback_query_handler(user_kb.accept_extend_device.filter())
+async def accept_extend_device(call: CallbackQuery, state: FSMContext, callback_data: dict):
+    device_id = int(callback_data["device_id"])
+    action = callback_data["action"]
+    if action == "cancel":
+        await call.message.edit_text("Вы отказались от продления тарифа", reply_markup=user_kb.show_menu)
+        return
+    user = await db.get_user(call.from_user.id)
+    if user["balance"] < wireguard_price:
+        return await call.message.edit_text("Недостаточно средств", reply_markup=user_kb.show_menu)
+    sub_time = datetime.now() + timedelta(days=30)
+    await db.set_sub_time(device_id, sub_time)
+    await db.update_user_balance(call.from_user.id, -wireguard_price)
+    await call.message.edit_text("Тариф возобновлён", reply_markup=user_kb.show_menu)
+
+# @dp.callback_query_handler(user_kb.add_limit.filter())
+# async def add_limit(call: CallbackQuery, state: FSMContext, callback_data: dict):
+#     device_id = int(callback_data["device_id"])
+#     value = int(callback_data["value"])
+#     await call.message.answer("Вы действительно хотите увеличить трафик?",
+#                               reply_markup=user_kb.get_accept_add_limit(device_id, value))
+#     await call.answer()
+#
+#
+# @dp.callback_query_handler(user_kb.accept_add_limit.filter())
+# async def accept_add_limit(call: CallbackQuery, state: FSMContext, callback_data: dict):
+#     device_id = int(callback_data["device_id"])
+#     value = int(callback_data["value"])
+#     user = await db.get_user(call.from_user.id)
+#     if value == 0:
+#         return await call.message.answer("Вы отказались от добавления трафика", reply_markup=user_kb.show_menu)
+#     if value != FREE_LIMIT and user["balance"] < outline_prices[value]:
+#         return await call.message.answer("Недостаточно средств на балансе", reply_markup=user_kb.show_menu)
+#     if value == FREE_LIMIT and not user["has_free_outline"]:
+#         await call.answer()
+#         return await call.message.answer("Произошла ошибка!")
+#
+#     device = await db.get_device(device_id)
+#     server = await db.get_server(device["server_id"])
+#     outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
+#     outline_client = outline_manager.get_client(device["outline_id"])
+#     outline_manager.set_data_limit(device["outline_id"], outline_client['dataLimit']['bytes'] // (1000 ** 3) + value)
+#     if value == FREE_LIMIT:
+#         await db.set_has_free_outline(call.from_user.id, False)
+#     else:
+#         await db.update_user_balance(call.from_user.id, -outline_prices[value])
+#         await db.add_history_record(call.from_user.id, -outline_prices[value], "Продление лимита")
+#     await call.message.answer("Лимит успешно увеличен!", reply_markup=user_kb.show_menu)
+#     await call.answer()

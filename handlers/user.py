@@ -12,9 +12,9 @@ from states.user import NewDevice
 start_msgs = {"exists": """Приветствуем вас снова, {firstname}! 🙋‍♂
 
 💵Баланс {balance}₽ 
-WireGuard {wireguard_status} {wireguard_desc} (~{days} дней)
+WireGuard {wireguard_status} {wireguard_desc}
 Outline {outline_status} {outline_desc}
-{free_outline}
+
 <b>ВНИМАНИЕ!</b>
 Из-за блокировок в России, WireGuard нестабилен, особенно при мобильном интернете. Рекомендуем Outline.
 
@@ -76,17 +76,11 @@ async def start_command(message: Message, state: FSMContext):
                                  inviter_id)
     else:
         menu_stats = await utils.devices.get_stats_for_menu(user)
-        if user["has_free_outline"]:
-            free_outline = "\n<b><u>Вам доступно 5ГБ трафика Outline бесплатно.</u></b>\n"
-        else:
-            free_outline = ""
         msg = start_msgs["exists"].format(firstname=message.from_user.first_name, balance=user["balance"],
-                                          days=menu_stats["days"],
                                           wireguard_status=menu_stats["wireguard_status"],
                                           wireguard_desc=menu_stats["wireguard_desc"],
                                           outline_status=menu_stats["outline_status"],
-                                          outline_desc=menu_stats["outline_desc"],
-                                          free_outline=free_outline
+                                          outline_desc=menu_stats["outline_desc"]
                                           )
         kb = user_kb.menu
 
@@ -104,17 +98,11 @@ async def show_menu(call: CallbackQuery, state: FSMContext):
     await state.finish()
     user = await db.get_user(call.from_user.id)
     menu_stats = await utils.devices.get_stats_for_menu(user)
-    if user["has_free_outline"]:
-        free_outline = "\n<b><u>Вам доступно 5ГБ трафика Outline бесплатно.</u></b>\n"
-    else:
-        free_outline = ""
     msg = start_msgs["exists"].format(firstname=call.from_user.first_name, balance=user["balance"],
-                                      days=menu_stats["days"],
                                       wireguard_status=menu_stats["wireguard_status"],
                                       wireguard_desc=menu_stats["wireguard_desc"],
                                       outline_status=menu_stats["outline_status"],
-                                      outline_desc=menu_stats["outline_desc"],
-                                      free_outline=free_outline)
+                                      outline_desc=menu_stats["outline_desc"])
     await call.message.answer(msg, reply_markup=user_kb.menu)
     await call.answer()
 

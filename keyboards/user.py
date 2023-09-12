@@ -1,7 +1,11 @@
+from datetime import date, datetime
+
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.callback_data import CallbackData
 
 from config_parser import outline_prices
+from utils import server as server_utils
+import database as db
 
 device = CallbackData("device", "device_id")
 delete_device = CallbackData("delete_device", "device_id")
@@ -12,10 +16,15 @@ add_limit = CallbackData("add_limit", "device_id", "value")
 accept_add_limit = CallbackData("accept_add_limit", "device_id", "value")
 limit_data = CallbackData("limit", "value")
 help_post = CallbackData("help_post", "post")
+auto_renewal = CallbackData("auto_renewal", "device_id", "status")
+resume_device = CallbackData("resume_device", "device_id")
+accept_resume_device = CallbackData("accept_resume_device", "device_id", "action")
+extend_device = CallbackData("extend", "device_id")
+accept_extend_device = CallbackData("extend", "device_id", "action")
 
 inline_cancel = InlineKeyboardMarkup(row_width=1).add(InlineKeyboardButton("Отмена", callback_data="cancel"))
 
-start = InlineKeyboardMarkup(row_width=1).add(InlineKeyboardButton("🎉 ПОДКЛЮЧИТЬ VPN 🎉", callback_data="start_vpn"))
+start = InlineKeyboardMarkup(row_width=1).add(InlineKeyboardButton("🎉 ПОДКЛЮЧИТЬ VPN 🎉", callback_data="show_menu"))
 
 show_menu = InlineKeyboardMarkup(row_width=1).add(InlineKeyboardButton("🏠Главное меню", callback_data="show_menu"))
 
@@ -49,13 +58,22 @@ first_device = InlineKeyboardMarkup(row_width=1).add(
     InlineKeyboardButton("Добавить устройство", callback_data="first_device"))
 
 
-def get_devices(devices):
+async def get_devices(devices):
     kb = InlineKeyboardMarkup(row_width=2)
     for my_device in devices:
         device_type = "(WG)" if my_device["device_type"] == "wireguard" else "(OL)"
-        kb.add(InlineKeyboardButton(f"{device_type} {my_device['name']}",
-                                    callback_data=device.new(my_device["device_id"])),
-               InlineKeyboardButton("❌ Удалить", callback_data=delete_device.new(my_device["device_id"])))
+        days = (my_device["sub_time"] - datetime.today()).days
+        limit = ""
+        if my_device["device_type"] == "outline":
+            server = await db.get_server(my_device["server_id"])
+            outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
+            outline_client = outline_manager.get_client(my_device["outline_id"])
+            outline_client_usage = outline_manager.get_usage_data(outline_client["id"])
+            usage_gb = outline_client_usage // (1000 ** 3)
+            limit = f"({usage_gb}/{my_device['outline_limit']})"
+        kb.add(InlineKeyboardButton(f"{device_type}({days}){limit} {my_device['name']}",
+                                    callback_data=device.new(my_device["device_id"])))
+    kb.add(InlineKeyboardButton("Удалить устройство", callback_data="delete_device"))
     kb.add(InlineKeyboardButton("Добавить устройство", callback_data="new_device"))
     return kb
 
@@ -67,6 +85,24 @@ def get_countries(countries):
     return kb
 
 
+async def get_delete_devices(devices):
+    kb = InlineKeyboardMarkup(row_width=2)
+    for my_device in devices:
+        device_type = "(WG)" if my_device["device_type"] == "wireguard" else "(OL)"
+        days = (my_device["sub_time"] - datetime.today()).days
+        limit = ""
+        if my_device["device_type"] == "outline":
+            server = await db.get_server(my_device["server_id"])
+            outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
+            outline_client = outline_manager.get_client(my_device["outline_id"])
+            outline_client_usage = outline_manager.get_usage_data(outline_client["id"])
+            usage_gb = outline_client_usage // (1000 ** 3)
+            limit = f"({usage_gb}/{my_device['outline_limit']})"
+        kb.add(InlineKeyboardButton(f"{device_type}({days}){limit} {my_device['name']}",
+                                    callback_data=delete_device.new(my_device["device_id"])))
+    return kb
+
+
 def get_delete_device(device_id):
     kb = InlineKeyboardMarkup(row_width=2)
     kb.add(InlineKeyboardButton("Да, удалить", callback_data=delete_device_action.new(device_id, "approve")),
@@ -74,24 +110,65 @@ def get_delete_device(device_id):
     return kb
 
 
-def get_limit(has_free_limit=False):
-    kb = InlineKeyboardMarkup(row_width=2)
-    if has_free_limit:
-        kb.add(InlineKeyboardButton("5ГБ: Бесплатно", callback_data=limit_data.new(5)))
+def get_limit():
+    kb = InlineKeyboardMarkup(row_width=1)
     kb.add(
-        *[InlineKeyboardButton(f"{amount} ГБ: {price} руб", callback_data=limit_data.new(amount))
-          for (amount, price) in outline_prices.items()]
+        *[InlineKeyboardButton(product['name'],
+                               callback_data=limit_data.new(product_id))
+          for (product_id, product) in outline_prices.items()]
     )
     return kb
 
 
-def get_add_limit(device_id, has_free_limit=False):
+#
+# def get_add_limit(device_id):
+#     kb = InlineKeyboardMarkup(row_width=1)
+#     for (amount, price) in outline_prices.items():
+#         kb.add(InlineKeyboardButton(f"{amount} ГБ: {price} руб", callback_data=add_limit.new(device_id, amount)))
+#     kb.add(InlineKeyboardButton("🏠Главное меню", callback_data="show_menu"))
+#     return kb
+
+def get_outline_device(device, is_active):
     kb = InlineKeyboardMarkup(row_width=1)
-    if has_free_limit:
-        kb.add(InlineKeyboardButton("5ГБ: Бесплатно", callback_data=add_limit.new(device_id, 5)))
-    for (amount, price) in outline_prices.items():
-        kb.add(InlineKeyboardButton(f"{amount} ГБ: {price} руб", callback_data=add_limit.new(device_id, amount)))
+    if not is_active:
+        kb.add(InlineKeyboardButton("Возобновить тариф", callback_data=resume_device.new(device["device_id"])))
+    if device["has_auto_renewal"]:
+        auto_renewal_text = "Откл. Автопродление"
+    else:
+        auto_renewal_text = "Вкл. Автопродление"
+    kb.add(InlineKeyboardButton(auto_renewal_text,
+                                callback_data=auto_renewal.new(device["device_id"], not device["has_auto_renewal"])))
+    kb.add(InlineKeyboardButton("Назад", callback_data="devices"))
     kb.add(InlineKeyboardButton("🏠Главное меню", callback_data="show_menu"))
+    return kb
+
+
+def get_wg_device(device, is_active):
+    kb = InlineKeyboardMarkup(row_width=1)
+    if not is_active and not device["has_auto_renewal"]:
+        kb.add(InlineKeyboardButton("Продлить", callback_data=extend_device.new(device["device_id"])))
+    if device["has_auto_renewal"]:
+        auto_renewal_text = "Откл. Автопродление"
+    else:
+        auto_renewal_text = "Вкл. Автопродление"
+    kb.add(InlineKeyboardButton(auto_renewal_text,
+                                callback_data=auto_renewal.new(device["device_id"], not device["has_auto_renewal"])))
+    kb.add(InlineKeyboardButton("Назад", callback_data="devices"))
+    kb.add(InlineKeyboardButton("🏠Главное меню", callback_data="show_menu"))
+    return kb
+
+
+def get_accept_extend_device(device_id):
+    kb = InlineKeyboardMarkup(row_width=1)
+    kb.add(InlineKeyboardButton("Да", callback_data=accept_extend_device.new(device_id, "approve")),
+           InlineKeyboardButton("Нет", callback_data=accept_extend_device.new(device_id, "cancel")))
+    return kb
+
+
+def get_accept_resume_device(device_id):
+    kb = InlineKeyboardMarkup(row_width=1)
+    kb.add(InlineKeyboardButton("Да", callback_data=accept_resume_device.new(device_id, "approve")),
+           InlineKeyboardButton("Нет", callback_data=accept_resume_device.new(device_id, "cancel")))
     return kb
 
 

@@ -34,8 +34,12 @@ async def create_models():
                        "name VARCHAR(64),"
                        "server_id SMALLINT REFERENCES servers (server_id),"
                        "outline_id VARCHAR(10),"
+                       "product_id varchar(1),"
+                       "outline_limit INTEGER,"
+                       "has_auto_renewal BOOLEAN DEFAULT TRUE,"
                        "has_first_payment BOOLEAN DEFAULT FALSE,"
-                       "create_time TIMESTAMP DEFAULT NOW())")
+                       "create_time TIMESTAMP DEFAULT NOW(),"
+                       "sub_time TIMESTAMP)")
     await conn.execute("CREATE TABLE IF NOT EXISTS history("
                        "record_id BIGSERIAL PRIMARY KEY,"
                        "user_id BIGINT REFERENCES users (user_id),"
