@@ -195,6 +195,9 @@ async def delete_device_start(call: CallbackQuery, state: FSMContext):
 async def delete_device(call: CallbackQuery, state: FSMContext, callback_data: dict):
     device_id = int(callback_data["device_id"])
     device = await db.get_device(device_id)
+    days = (device["sub_time"] - datetime.today()).days
+    day_text = get_days_text(days)
+
     if device["device_type"] == "outline":
         server = await db.get_server(device["server_id"])
         outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
@@ -203,18 +206,14 @@ async def delete_device(call: CallbackQuery, state: FSMContext, callback_data: d
         usage_gb = outline_client_usage // (1000 ** 3)
         limit_gb = outline_client['dataLimit']['bytes'] // (1000 ** 3)
         remaining_gb = limit_gb - usage_gb
-        if usage_gb < limit_gb or datetime.now() < device["sub_time"]:
-            await call.answer()
-            return await call.message.answer(
-                f"""Невозможно удалить устройство, пока у Вас есть свободный остаток трафика. Остаток трафика {remaining_gb}ГБ""",
-                reply_markup=user_kb.show_menu)
+        msg = f"""Не рекомендуем удалять устройство, поскольку Вам еще доступно {days} {day_text} и {remaining_gb} ГБ
+
+Восстановление ключа будет невозможным."""
     else:
-        if datetime.now() < device["sub_time"]:
-            await call.answer()
-            return await call.message.answer(
-                f"""Невозможно удалить устройство, пока у Вас есть оставшиеся дни""",
-                reply_markup=user_kb.show_menu)
-    await call.message.answer("Вы действительно хотите удалить устройство?",
+        msg = f"""Не рекомендуем удалять устройство, поскольку Вам еще доступно {days} {day_text}.
+
+Восстановление конфиг-файла будет невозможным."""
+    await call.message.answer(msg,
                               reply_markup=user_kb.get_delete_device(device_id))
     await call.answer()
 
@@ -223,7 +222,17 @@ async def delete_device(call: CallbackQuery, state: FSMContext, callback_data: d
 async def delete_device_action(call: CallbackQuery, state: FSMContext, callback_data: dict):
     device_id = int(callback_data["device_id"])
     action = callback_data["action"]
+    if action == "approve":
+        await call.message.edit_text("Вы уверены, что хотите удалить устройство?",
+                                     reply_markup=user_kb.get_accept_delete_device(device_id))
+    elif action == "cancel":
+        await call.message.edit_text("Вы отказались от удаления аккаунта устройства!", reply_markup=user_kb.show_menu)
 
+
+@dp.callback_query_handler(user_kb.delete_device_approve.filter())
+async def delete_device_approve(call: CallbackQuery, state: FSMContext, callback_data: dict):
+    device_id = int(callback_data["device_id"])
+    action = callback_data["action"]
     if action == "approve":
         device = await db.get_device(device_id)
         server = await db.get_server(device["server_id"])

@@ -11,6 +11,7 @@ from utils.devices import get_days_text
 device = CallbackData("device", "device_id")
 delete_device = CallbackData("delete_device", "device_id")
 delete_device_action = CallbackData("delete_device_action", "device_id", "action")
+delete_device_approve = CallbackData("delete_device_approve", "device_id", "action")
 new_device_country = CallbackData("new_device_country", "country_id")
 payment = CallbackData("payment", "amount")
 add_limit = CallbackData("add_limit", "device_id", "value")
@@ -111,8 +112,15 @@ async def get_delete_devices(devices):
 
 def get_delete_device(device_id):
     kb = InlineKeyboardMarkup(row_width=2)
-    kb.add(InlineKeyboardButton("Да, удалить", callback_data=delete_device_action.new(device_id, "approve")),
+    kb.add(InlineKeyboardButton("❌ Всё равно удалить", callback_data=delete_device_action.new(device_id, "approve")),
            InlineKeyboardButton("Не удалять", callback_data=delete_device_action.new(device_id, "cancel")))
+    return kb
+
+
+def get_accept_delete_device(device_id):
+    kb = InlineKeyboardMarkup(row_width=2)
+    kb.add(InlineKeyboardButton("Да", callback_data=delete_device_approve.new(device_id, "approve")),
+           InlineKeyboardButton("Нет", callback_data=delete_device_approve.new(device_id, "cancel")))
     return kb
 
 

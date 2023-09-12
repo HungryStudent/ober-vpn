@@ -17,7 +17,7 @@ async def statistics(call: CallbackQuery):
 | balance
 | Конфиги\n\n"""
 
-    for i in range(0, 1000, 50):
+    for i in range(0, len(users), 50):
         curr_users = users[i:i + 50]
         for row in curr_users:
             devices = await db.get_devices_by_user_id_and_device_type(row["user_id"], "wireguard")
@@ -38,3 +38,4 @@ async def statistics(call: CallbackQuery):
 
         await call.message.answer(
             f'<b>Статистика</b>\n\n{msg}')
+        msg = ""
