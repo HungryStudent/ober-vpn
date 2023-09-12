@@ -3,7 +3,6 @@ from fastapi import FastAPI, Request
 
 import database as db
 from create_bot import bot
-from utils.devices import check_wireguard_active
 from keyboards import user as user_kb
 
 app = FastAPI()

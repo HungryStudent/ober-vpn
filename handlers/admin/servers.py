@@ -106,6 +106,7 @@ async def change_server_new_value(message: Message, state: FSMContext):
             await message.answer("Неверный пароль")
             return await state.finish()
         await db.change_server_password(int(data["server_id"]), new_value)
+        await asyncio.create_subprocess_shell(f"ssh-keyscan {server['ip_address']} >> ~/.ssh/known_hosts")
     countries = await db.get_countries()
     await message.answer("Пароль успешно изменён", reply_markup=admin_kb.get_countries(countries))
     await state.finish()
