@@ -111,9 +111,10 @@ async def get_delete_devices(devices):
 
 
 def get_delete_device(device_id):
-    kb = InlineKeyboardMarkup(row_width=2)
-    kb.add(InlineKeyboardButton("❌ Всё равно удалить", callback_data=delete_device_action.new(device_id, "approve")),
-           InlineKeyboardButton("Не удалять", callback_data=delete_device_action.new(device_id, "cancel")))
+    kb = InlineKeyboardMarkup(row_width=1)
+    kb.add(InlineKeyboardButton("❌ Всё равно удалить", callback_data=delete_device_action.new(device_id, "approve")))
+    kb.add(InlineKeyboardButton("Назад", callback_data="devices"))
+    kb.add(InlineKeyboardButton("🏠Главное меню", callback_data="show_menu"))
     return kb
 
 
