@@ -96,6 +96,15 @@ async def change_server_new_value(message: Message, state: FSMContext):
     new_value = message.text
     data = await state.get_data()
     if data["field"] == "password":
+        server = await db.get_server(int(data["server_id"]))
+        client = paramiko.SSHClient()
+        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        await message.answer("Входим на сервер...", reply_markup=admin_kb.ReplyKeyboardRemove())
+        try:
+            client.connect(hostname=server["ip_address"], password=new_value, username="root", port=22)
+        except paramiko.ssh_exception.AuthenticationException:
+            await message.answer("Неверный пароль")
+            return await state.finish()
         await db.change_server_password(int(data["server_id"]), new_value)
     countries = await db.get_countries()
     await message.answer("Пароль успешно изменён", reply_markup=admin_kb.get_countries(countries))
