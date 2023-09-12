@@ -43,7 +43,7 @@ async def get_server(server_id):
 
 async def change_server_password(server_id, password):
     conn: Connection = await get_conn()
-    await conn.execute("UPDATE servers SET password = $1 WHERE server_id = $2", password, server_id)
+    await conn.execute("UPDATE servers SET server_password = $1 WHERE server_id = $2", password, server_id)
     await conn.close()
 
 
