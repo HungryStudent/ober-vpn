@@ -20,7 +20,7 @@ async def yookassa_request(request: Request):
     await bot.send_message(user_id, f"""Платеж проведен. На Ваш аккаунт зачислено {amount}₽ 
 
 Ваш баланс: {user['balance']}₽""", user_kb.show_menu)
-    await check_wireguard_active(user_id, bot)
+    # await check_wireguard_active(user_id, bot)
     return 200
 
 

@@ -234,7 +234,7 @@ async def delete_device_action(call: CallbackQuery, state: FSMContext, callback_
         elif device["device_type"] == "outline":
             outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
             outline_manager.delete_client(device["outline_id"])
-        await check_wireguard_active(call.from_user.id, call.bot)
+        # await check_wireguard_active(call.from_user.id, call.bot)
     elif action == "cancel":
         await call.message.edit_text("Вы отказались от удаления аккаунта устройства!", reply_markup=user_kb.show_menu)
 
@@ -308,7 +308,6 @@ async def auto_renewal(call: CallbackQuery, state: FSMContext, callback_data: di
     if device["device_type"] == "wireguard":
         await server_utils.get_wireguard_config(server["ip_address"], server["server_password"], device_id,
                                                 call.from_user.id)
-        await call.message.answer_photo(open(f"OberVPN_{call.from_user.id}_{device_id}.png", "rb"))
         days = (device["sub_time"] - datetime.today()).days
         active = ""
         is_active = True
