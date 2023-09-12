@@ -172,7 +172,7 @@ async def new_device_country(call: CallbackQuery, state: FSMContext, callback_da
         outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
         outline_client = outline_manager.create_client(call.from_user.id, limit)
         await call.message.answer(f"""Нажмите на ключ ниже, чтобы скопировать его 👇
-<code>{outline_client['accessUrl']}</code>""",
+<code>{outline_client['accessUrl']}#OberVPN</code>""",
                                   reply_markup=user_kb.show_menu)
         await db.set_outline_id(device_id, outline_client["id"])
         history_msg = "Создание ключа"
@@ -301,7 +301,7 @@ async def device_menu(call: CallbackQuery, state: FSMContext, callback_data: dic
 {auto_renewal_text}
 
 Нажмите на ключ ниже, чтобы скопировать его 👇
-<code>{outline_client['accessUrl']}</code>""", reply_markup=user_kb.get_outline_device(device, is_active))
+<code>{outline_client['accessUrl']}#OberVPN</code>""", reply_markup=user_kb.get_outline_device(device, is_active))
 
     await call.answer()
 
@@ -352,7 +352,7 @@ async def auto_renewal(call: CallbackQuery, state: FSMContext, callback_data: di
 {auto_renewal_text}
 
 Нажмите на ключ ниже, чтобы скопировать его 👇
-<code>{outline_client['accessUrl']}</code>""", reply_markup=user_kb.get_outline_device(device, is_active))
+<code>{outline_client['accessUrl']}#OberVPN</code>""", reply_markup=user_kb.get_outline_device(device, is_active))
 
 
 @dp.callback_query_handler(user_kb.resume_device.filter())

@@ -55,7 +55,7 @@ async def admin_device(call: CallbackQuery, state: FSMContext, callback_data: di
         usage_gb = outline_client_usage // (1000 ** 3)
         limit_gb = outline_client['dataLimit']['bytes'] // (1000 ** 3)
         await call.message.answer(f"""Использовано {usage_gb}/{limit_gb}ГБ
-    {outline_client['accessUrl']}""", reply_markup=admin_kb.get_add_limit(device_id))
+{outline_client['accessUrl']}#OberVPN""", reply_markup=admin_kb.get_add_limit(device_id))
     await call.answer()
 
 
