@@ -2,7 +2,6 @@ from aiogram import Bot
 
 import database as db
 from config_parser import wireguard_price
-from keyboards import user as user_kb
 from utils import server as server_utils
 
 
