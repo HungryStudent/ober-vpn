@@ -260,11 +260,9 @@ async def device_menu(call: CallbackQuery, state: FSMContext, callback_data: dic
             is_active = False
             active = "\nКонфиг неактивен\n\n"
 
-        # await call.message.answer_document(open(f"OberVPN_{call.from_user.id}_{device_id}.conf", "rb"),
-        #                                    caption=f"{active}{auto_renewal_text}",
-        #                                    reply_markup=user_kb.show_menu)
-        await call.message.answer(text=f"{active}{auto_renewal_text}",
-                                  reply_markup=user_kb.get_wg_device(device, is_active))
+        await call.message.answer_document(open(f"OberVPN_{call.from_user.id}_{device_id}.conf", "rb"),
+                                           caption=f"{active}{auto_renewal_text}",
+                                           reply_markup=user_kb.get_wg_device(device, is_active))
         os.remove(f"OberVPN_{call.from_user.id}_{device_id}.png")
         os.remove(f"OberVPN_{call.from_user.id}_{device_id}.conf")
     elif device["device_type"] == "outline":
@@ -318,11 +316,9 @@ async def auto_renewal(call: CallbackQuery, state: FSMContext, callback_data: di
             is_active = False
             active = "\nКонфиг неактивен\n\n"
 
-        # await call.message.edit_caption(open(
-        #                                    caption=f"{active}{auto_renewal_text}",
-        #                                    reply_markup=user_kb.get_wg_device(device, is_active))
-        await call.message.edit_text(text=f"{active}{auto_renewal_text}",
-                                     reply_markup=user_kb.get_wg_device(device, is_active))
+        await call.message.edit_caption(
+            caption=f"{active}{auto_renewal_text}",
+            reply_markup=user_kb.get_wg_device(device, is_active))
         os.remove(f"OberVPN_{call.from_user.id}_{device_id}.png")
         os.remove(f"OberVPN_{call.from_user.id}_{device_id}.conf")
     else:
