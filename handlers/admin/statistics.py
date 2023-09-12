@@ -14,12 +14,25 @@ async def statistics(call: CallbackQuery):
     msg = """<b>Статистика</b>
 | username
 | tg_id
-| balance\n\n"""
+| balance
+| Конфиги\n\n"""
 
     for row in users:
+        devices = await db.get_devices_by_user_id_and_device_type(row["user_id"], "wireguard")
+        if len(devices) == 0:
+            has_wg = "нет"
+        else:
+            has_wg = "есть"
+        devices = await db.get_devices_by_user_id_and_device_type(row["user_id"], "outline")
+        if len(devices) == 0:
+            has_ol = "нет"
+        else:
+            has_ol = "есть"
+
         msg += f"""| {row["username"]}
 | {f'<code>{row["user_id"]}</code>'}
-| {row["balance"]}\n\n"""
+| {row["balance"]}
+| WG {has_wg}, OL {has_ol}\n\n"""
 
     await call.message.answer(
         f'<b>Статистика</b>\n\n{msg}')

@@ -32,7 +32,7 @@ async def main():
                 outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
                 outline_manager.set_data_limit(device["outline_id"], 0)
                 continue
-        sub_time = datetime.now() + timedelta(days=30)
+        sub_time = datetime.now() + timedelta(days=31)
         limit = device["outline_limit"] + outline_prices[device["product_id"]]["limit"]
         await db.set_sub_time(device["device_id"], sub_time)
         await db.set_outline_limit(device["device_id"], limit)

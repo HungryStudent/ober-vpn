@@ -6,6 +6,17 @@ from keyboards import user as user_kb
 from utils import server as server_utils
 
 
+def get_days_text(n):
+    if n in (11, 12, 13, 14):
+        return 'дней'
+    elif n % 10 == 1:
+        return 'день'
+    elif n % 10 in (2, 3, 4):
+        return 'дня'
+    else:
+        return 'дней'
+
+
 async def check_wireguard_active(user_id, bot: Bot):
     user = await db.get_user(user_id)
     if not user["is_wireguard_active"]:

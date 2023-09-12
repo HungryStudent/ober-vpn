@@ -147,7 +147,7 @@ async def new_device_country(call: CallbackQuery, state: FSMContext, callback_da
         device_limit = outline_prices[product_id]["limit"]
     country_id = int(callback_data["country_id"])
     server = await db.get_current_server_by_country_id(country_id)
-    sub_time = datetime.now() + timedelta(days=30)
+    sub_time = datetime.now() + timedelta(days=31)
     device_id = await db.add_new_device(call.from_user.id, data["device_type"], data["name"], server["server_id"],
                                         sub_time, product_id, device_limit)
     await call.message.edit_text("Девайс успешно создан", reply_markup=user_kb.show_menu)
@@ -186,7 +186,7 @@ async def new_device_country(call: CallbackQuery, state: FSMContext, callback_da
 @dp.callback_query_handler(text="delete_device")
 async def delete_device_start(call: CallbackQuery, state: FSMContext):
     devices = await db.get_devices_by_user_id(call.from_user.id)
-    await call.message.answer("«Выберите устройство, которое вы хотите удалить:",
+    await call.message.answer("Выберите устройство, которое вы хотите удалить:",
                               reply_markup=await user_kb.get_delete_devices(devices))
     await call.answer()
 
@@ -364,7 +364,7 @@ async def accept_resume_device(call: CallbackQuery, state: FSMContext, callback_
     user = await db.get_user(call.from_user.id)
     if user["balance"] < product["price"]:
         return await call.message.edit_text("Недостаточно средств", reply_markup=user_kb.show_menu)
-    sub_time = datetime.now() + timedelta(days=30)
+    sub_time = datetime.now() + timedelta(days=31)
     limit = device["outline_limit"] + product["limit"]
     await db.set_sub_time(device_id, sub_time)
     await db.set_outline_limit(device_id, limit)
@@ -393,7 +393,7 @@ async def accept_extend_device(call: CallbackQuery, state: FSMContext, callback_
     user = await db.get_user(call.from_user.id)
     if user["balance"] < wireguard_price:
         return await call.message.edit_text("Недостаточно средств", reply_markup=user_kb.show_menu)
-    sub_time = datetime.now() + timedelta(days=30)
+    sub_time = datetime.now() + timedelta(days=31)
     await db.set_sub_time(device_id, sub_time)
     await db.update_user_balance(call.from_user.id, -wireguard_price)
     await call.message.edit_text("Тариф возобновлён", reply_markup=user_kb.show_menu)
