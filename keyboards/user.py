@@ -77,7 +77,6 @@ async def get_devices(devices):
                                     callback_data=device.new(my_device["device_id"])))
     kb.add(InlineKeyboardButton("❌ Удалить устройство", callback_data="delete_device"))
     kb.add(InlineKeyboardButton("➕ Добавить устройство", callback_data="new_device"))
-    kb.add(InlineKeyboardButton("Назад", callback_data="devices"))
     kb.add(InlineKeyboardButton("🏠Главное меню", callback_data="show_menu"))
     return kb
 
@@ -105,6 +104,8 @@ async def get_delete_devices(devices):
             limit = f"({usage_gb}/{my_device['outline_limit']})"
         kb.add(InlineKeyboardButton(f"{device_type}({days} {day_text}){limit} {my_device['name']}",
                                     callback_data=delete_device.new(my_device["device_id"])))
+    kb.add(InlineKeyboardButton("Назад", callback_data="devices"))
+    kb.add(InlineKeyboardButton("🏠Главное меню", callback_data="show_menu"))
     return kb
 
 
