@@ -6,6 +6,7 @@ from config_parser import outline_prices
 
 admin_country = CallbackData("admin_country", "country_id")
 change_country = CallbackData("change_country", "country_id", "field")
+hidden_country = CallbackData("hidden_country", "country_id", "status")
 delete_country = CallbackData("delete_country", "country_id")
 admin_server = CallbackData("admin_server", "server_id")
 delete_server = CallbackData("delete_server", "server_id")
@@ -55,6 +56,12 @@ def get_country(country, servers):
         kb.add(InlineKeyboardButton(server["ip_address"], callback_data=admin_server.new(server["server_id"])))
     kb.add(InlineKeyboardButton("Добавить сервер", callback_data=create_server.new(country["country_id"])))
     kb.add(InlineKeyboardButton("Изменить название", callback_data=change_country.new(country["country_id"], "name")))
+    if country["is_hidden"]:
+        is_hidden_text = "Показать страну"
+    else:
+        is_hidden_text = "Скрыть страну"
+    kb.add(InlineKeyboardButton(is_hidden_text,
+                                callback_data=hidden_country.new(country["country_id"], not country["is_hidden"])))
     kb.add(InlineKeyboardButton("Удалить страну", callback_data=delete_country.new(country["country_id"])))
     kb.add(InlineKeyboardButton("Назад", callback_data="admin_countries"))
     return kb

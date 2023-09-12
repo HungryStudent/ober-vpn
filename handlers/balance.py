@@ -13,13 +13,7 @@ from states.user import BalanceAmount
 async def msg_balance_menu(message: Message, state: FSMContext):
     await state.finish()
     user = await db.get_user(message.from_user.id)
-    devices = await db.get_devices_by_user_id_and_device_type(user["user_id"], "wireguard")
-    amount = len(devices) * wireguard_price
-    try:
-        days = float(user["balance"]) // amount
-    except ZeroDivisionError:
-        days = 0
-    await message.answer(f"""Баланс: {user['balance']}₽ (~{days} дней)
+    await message.answer(f"""Баланс: {user['balance']}₽
 
 Выберите необходимую сумму:""",
                          reply_markup=user_kb.balance)
@@ -28,13 +22,7 @@ async def msg_balance_menu(message: Message, state: FSMContext):
 @dp.callback_query_handler(text="balance_menu")
 async def balance_menu(call: CallbackQuery, state: FSMContext):
     user = await db.get_user(call.from_user.id)
-    devices = await db.get_devices_by_user_id_and_device_type(user["user_id"], "wireguard")
-    amount = len(devices) * wireguard_price
-    try:
-        days = float(user["balance"]) // amount
-    except ZeroDivisionError:
-        days = 0
-    await call.message.answer(f"""Баланс: {user['balance']}₽ (~{days} дней)
+    await call.message.answer(f"""Баланс: {user['balance']}₽
     
 Выберите необходимую сумму:""",
                               reply_markup=user_kb.balance)

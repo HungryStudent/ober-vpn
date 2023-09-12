@@ -39,6 +39,16 @@ async def create_country_name(message: Message, state: FSMContext):
     await state.finish()
 
 
+@dp.callback_query_handler(admin_kb.hidden_country.filter())
+async def hidden_country(call: CallbackQuery, state: FSMContext, callback_data: dict):
+    country_id = int(callback_data["country_id"])
+    status = True if callback_data["status"] == "True" else False
+    await db.set_is_hidden(country_id, status)
+    country = await db.get_country(country_id)
+    servers = await db.get_servers_by_country_id(country_id)
+    await call.message.edit_text(country["name"], reply_markup=admin_kb.get_country(country, servers))
+
+
 @dp.callback_query_handler(admin_kb.change_country.filter())
 async def change_country_start(call: CallbackQuery, state: FSMContext, callback_data: dict):
     country_id = callback_data["country_id"]

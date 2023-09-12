@@ -18,7 +18,8 @@ async def create_models():
                        "is_admin BOOLEAN DEFAULT FALSE)")
     await conn.execute("CREATE TABLE IF NOT EXISTS countries("
                        "country_id SMALLSERIAL PRIMARY KEY,"
-                       "name VARCHAR(32))")
+                       "name VARCHAR(32),"
+                       "is_hidden BOOLEAN DEFAULT FALSE)")
     await conn.execute("CREATE TABLE IF NOT EXISTS servers("
                        "server_id SMALLSERIAL PRIMARY KEY,"
                        "ip_address VARCHAR(15),"

@@ -10,7 +10,7 @@ from config_parser import outline_prices, wireguard_price
 from create_bot import dp
 from states.user import NewDevice
 from utils import server as server_utils
-from utils.devices import check_wireguard_active
+from utils.devices import check_wireguard_active, get_days_text
 
 instructions = {
     "wireguard": """Инструкция для настройки WireGuard на Вашем устройстве:
@@ -259,9 +259,12 @@ async def device_menu(call: CallbackQuery, state: FSMContext, callback_data: dic
         if days <= 0:
             is_active = False
             active = "\nКонфиг неактивен\n\n"
+        if days < 0:
+            days = 0
+        day_text = get_days_text(days)
 
         await call.message.answer_document(open(f"OberVPN_{call.from_user.id}_{device_id}.conf", "rb"),
-                                           caption=f"{active}{auto_renewal_text}",
+                                           caption=f"Осталось {days} {day_text}\n\n{active}{auto_renewal_text}",
                                            reply_markup=user_kb.get_wg_device(device, is_active))
         os.remove(f"OberVPN_{call.from_user.id}_{device_id}.png")
         os.remove(f"OberVPN_{call.from_user.id}_{device_id}.conf")
@@ -283,7 +286,8 @@ async def device_menu(call: CallbackQuery, state: FSMContext, callback_data: dic
             active = "\nКлюч неактивен\n"
         if days < 0:
             days = 0
-        await call.message.answer(f"""Осталось {days} дней. Использовано {usage_gb}/{limit_gb}ГБ
+        day_text = get_days_text(days)
+        await call.message.answer(f"""Осталось {days} {day_text}. Использовано {usage_gb}/{limit_gb}ГБ
 {active}
 {auto_renewal_text}
 
@@ -333,7 +337,8 @@ async def auto_renewal(call: CallbackQuery, state: FSMContext, callback_data: di
         if days <= 0 or usage_gb >= limit_gb:
             active = "\nКлюч неактивен\n"
             is_active = False
-        await call.message.edit_text(f"""Осталось {days} дней. Использовано {usage_gb}/{limit_gb}ГБ
+        day_text = get_days_text(days)
+        await call.message.edit_text(f"""Осталось {days} {day_text}. Использовано {usage_gb}/{limit_gb}ГБ
 {active}
 {auto_renewal_text}
 

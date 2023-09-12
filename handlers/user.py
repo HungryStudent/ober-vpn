@@ -9,7 +9,7 @@ from config_parser import BOT_NAME
 from create_bot import dp
 from states.user import NewDevice
 
-start_msgs = {"exists": """Приветствуем вас снова, {firstname}! 🙋‍♂
+start_msgs = {"exists": """Приветствуем Вас, {firstname}! 🙋‍♂
 
 💵Баланс {balance}₽ 
 WireGuard {wireguard_status} {wireguard_desc}

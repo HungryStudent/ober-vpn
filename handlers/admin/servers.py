@@ -4,6 +4,7 @@ from aiogram.types import Message, CallbackQuery
 
 import database as db
 import keyboards.admin as admin_kb
+from config_parser import wireguard_price, outline_prices
 from create_bot import dp
 from states.admin import CreateServer, ChangeServer
 from utils import server as server_utils
@@ -141,9 +142,11 @@ async def delete_server_action(call: CallbackQuery, state: FSMContext, callback_
             if device["device_type"] == "wireguard":
                 await server_utils.delete_wireguard_config(server["ip_address"], server["server_password"],
                                                            device["device_id"])
+                await db.update_user_balance(device["user_id"], wireguard_price)
             elif device["device_type"] == "outline":
                 outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
                 outline_manager.delete_client(device["outline_id"])
+                await db.update_user_balance(device["user_id"], outline_prices[device["product_id"]]["price"])
         await db.delete_server(server_id)
         await call.message.edit_text("Сервер удалён")
     elif action == "cancel":
