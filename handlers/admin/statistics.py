@@ -17,22 +17,24 @@ async def statistics(call: CallbackQuery):
 | balance
 | Конфиги\n\n"""
 
-    for row in users:
-        devices = await db.get_devices_by_user_id_and_device_type(row["user_id"], "wireguard")
-        if len(devices) == 0:
-            has_wg = "нет"
-        else:
-            has_wg = "есть"
-        devices = await db.get_devices_by_user_id_and_device_type(row["user_id"], "outline")
-        if len(devices) == 0:
-            has_ol = "нет"
-        else:
-            has_ol = "есть"
+    for i in range(0, 1000, 50):
+        curr_users = users[i:i + 50]
+        for row in curr_users:
+            devices = await db.get_devices_by_user_id_and_device_type(row["user_id"], "wireguard")
+            if len(devices) == 0:
+                has_wg = "нет"
+            else:
+                has_wg = "есть"
+            devices = await db.get_devices_by_user_id_and_device_type(row["user_id"], "outline")
+            if len(devices) == 0:
+                has_ol = "нет"
+            else:
+                has_ol = "есть"
 
-        msg += f"""| {row["username"]}
+            msg += f"""| {row["username"]}
 | {f'<code>{row["user_id"]}</code>'}
 | {row["balance"]}
 | WG {has_wg}, OL {has_ol}\n\n"""
 
-    await call.message.answer(
-        f'<b>Статистика</b>\n\n{msg}')
+        await call.message.answer(
+            f'<b>Статистика</b>\n\n{msg}')
