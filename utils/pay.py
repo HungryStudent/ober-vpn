@@ -18,6 +18,9 @@ def create_payment(amount, user_id) -> PaymentResponse:
             "return_url": f"https://t.me/{BOT_NAME}"
         },
         "description": f"Пополнение баланса",
-        "metadata": {"user_id": user_id}
+        "metadata": {"user_id": user_id},
+        "payment_method_data": {
+            "type": "sbp"
+        }
     })
     return payment

@@ -23,6 +23,7 @@ resume_device = CallbackData("resume_device", "device_id")
 accept_resume_device = CallbackData("accept_resume_device", "device_id", "action")
 extend_device = CallbackData("extend", "device_id")
 accept_extend_device = CallbackData("extend", "device_id", "action")
+tg_pay = CallbackData("tg_pay", "amount")
 
 inline_cancel = InlineKeyboardMarkup(row_width=1).add(InlineKeyboardButton("Отмена", callback_data="cancel"))
 
@@ -194,7 +195,8 @@ def get_accept_add_limit(device_id, amount):
     return kb
 
 
-def get_payment_url(url):
+def get_payment_url(url, amount):
     kb = InlineKeyboardMarkup(row_width=1)
     kb.add(InlineKeyboardButton("Оплатить", url=url))
+    kb.add(InlineKeyboardButton("В телеграм", callback_data=tg_pay.new(amount)))
     return kb

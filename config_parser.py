@@ -8,6 +8,7 @@ wireguard_price = float(config["settings"]["wireguard_price"])
 BOT_NAME = config["settings"]["BOT_NAME"]
 YOOKASSA_TOKEN = config["settings"]["YOOKASSA_TOKEN"]
 YOOKASSA_SHOP_ID = int(config["settings"]["YOOKASSA_SHOP_ID"])
+PAY_TOKEN = config["settings"]["PAY_TOKEN"]
 
 outline_prices = {
     "1": {"name": "Бронза", "price": 100, "limit": 150},
