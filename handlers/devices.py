@@ -51,22 +51,27 @@ menu_text = """Устройства и Тарифы:
 WireGuard (WG):
 1 конфиг — 30 дней Цена 100 руб.
 ⚠️ Оплата продлевается автоматически по окончанию месяца.
-<b>Чтобы получить QR код с конфигом, нажмите на имя устройства.</b>
-
+{has_wg}
 Outline (OL) Тарифы:
 Бронза    — 30 дней/150ГБ Цена 100 руб
 Серебро — 30 дней/300ГБ Цена 170 руб
 Золото    — 30 дней/500ГБ Цена 250 руб
 
 ⚠️ Оплата продлевается автоматически по окончанию месяца.
-<b>Чтобы получить ключ и <u>узнать остаток трафика</u>, нажмите на имя устройства.</b>"""
+{has_outline}"""
 
 
 @dp.message_handler(commands="devices", state="*")
 async def msg_device_menu(message: Message, state: FSMContext):
     await state.finish()
     devices = await db.get_devices_by_user_id(message.from_user.id)
-    await message.answer(menu_text,
+    if len(devices) == 0:
+        has_wg = ""
+        has_outline = ""
+    else:
+        has_wg = "<b>Чтобы получить QR код с конфигом, нажмите на имя устройства.</b>\n"
+        has_outline = "<b>Чтобы получить ключ, нажмите на имя устройства.</b>"
+    await message.answer(menu_text.format(has_wg=has_wg, has_outline=has_outline),
                          reply_markup=await user_kb.get_devices(devices))
 
 
@@ -74,7 +79,13 @@ async def msg_device_menu(message: Message, state: FSMContext):
 async def devices_menu(call: CallbackQuery, state: FSMContext):
     await state.finish()
     devices = await db.get_devices_by_user_id(call.from_user.id)
-    await call.message.answer(menu_text,
+    if len(devices) == 0:
+        has_wg = ""
+        has_outline = ""
+    else:
+        has_wg = "<b>Чтобы получить QR код с конфигом, нажмите на имя устройства.\n</b>"
+        has_outline = "<b>Чтобы получить ключ, нажмите на имя устройства.</b>"
+    await call.message.answer(menu_text.format(has_wg=has_wg, has_outline=has_outline),
                               reply_markup=await user_kb.get_devices(devices))
     await call.answer()
 
@@ -131,11 +142,55 @@ async def new_device_limit(call: CallbackQuery, state: FSMContext, callback_data
 @dp.message_handler(state=NewDevice.name)
 async def new_device_name(message: Message, state: FSMContext):
     await state.update_data(name=message.text)
-    await state.set_state(NewDevice.country)
-    countries = await db.get_countries_for_new_device()
-    await message.answer("""Выбор определенной страны в VPN означает, что ваша виртуальная локация совпадает с физическим местоположением в этой стране. Если вам это несущественно, то вы можете выбрать любую страну на свое усмотрение.
 
-Выберите страну:""", reply_markup=user_kb.get_countries(countries))
+    data = await state.get_data()
+    product_id = data["product_id"] if "product_id" in data else None
+    device_limit = None
+    if product_id is not None:
+        device_limit = outline_prices[product_id]["limit"]
+    country_id = 1
+    server = await db.get_current_server_by_country_id(country_id)
+    sub_time = datetime.now() + timedelta(days=31)
+    device_id = await db.add_new_device(message.from_user.id, data["device_type"], data["name"], server["server_id"],
+                                        sub_time, product_id, device_limit)
+    await message.answer("Девайс успешно создан", reply_markup=user_kb.show_menu)
+    price = 0
+    history_msg = "Создание конфига"
+    await message.answer(instructions[data["device_type"]], disable_web_page_preview=True)
+    if data["device_type"] == "wireguard":
+        await server_utils.create_wireguard_config(server["ip_address"], server["server_password"], device_id)
+        await server_utils.get_wireguard_config(server["ip_address"], server["server_password"], device_id,
+                                                message.from_user.id)
+        await message.answer_photo(open(f"OberVPN_{message.from_user.id}_{device_id}.png", "rb"))
+        await message.answer_document(open(f"OberVPN_{message.from_user.id}_{device_id}.conf", "rb"),
+                                           reply_markup=user_kb.show_menu)
+        os.remove(f"OberVPN_{message.from_user.id}_{device_id}.png")
+        os.remove(f"OberVPN_{message.from_user.id}_{device_id}.conf")
+        price = wireguard_price
+        history_msg = "Создание конфига"
+    elif data["device_type"] == "outline":
+        product = outline_prices[data["product_id"]]
+        limit = product["limit"]
+        price = product["price"]
+        outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
+        outline_client = outline_manager.create_client(message.from_user.id, limit)
+        await message.answer(f"""Нажмите на ключ ниже, чтобы скопировать его 👇
+<code>{outline_client['accessUrl']}#OberVPN</code>""",
+                                  reply_markup=user_kb.show_menu)
+        await db.set_outline_id(device_id, outline_client["id"])
+        history_msg = "Создание ключа"
+
+    await db.add_history_record(message.from_user.id, price, history_msg)
+    await db.update_user_balance(message.from_user.id, -price)
+
+    await state.finish()
+
+
+#     await state.set_state(NewDevice.country)
+#     countries = await db.get_countries_for_new_device()
+#     await message.answer("""Выбор определенной страны в VPN означает, что ваша виртуальная локация совпадает с физическим местоположением в этой стране. Если вам это несущественно, то вы можете выбрать любую страну на свое усмотрение.
+#
+# Выберите страну:""", reply_markup=user_kb.get_countries(countries))
 
 
 @dp.callback_query_handler(user_kb.new_device_country.filter(), state=NewDevice.country)
