@@ -163,7 +163,7 @@ async def new_device_name(message: Message, state: FSMContext):
                                                 message.from_user.id)
         await message.answer_photo(open(f"OberVPN_{message.from_user.id}_{device_id}.png", "rb"))
         await message.answer_document(open(f"OberVPN_{message.from_user.id}_{device_id}.conf", "rb"),
-                                           reply_markup=user_kb.show_menu)
+                                      reply_markup=user_kb.show_menu)
         os.remove(f"OberVPN_{message.from_user.id}_{device_id}.png")
         os.remove(f"OberVPN_{message.from_user.id}_{device_id}.conf")
         price = wireguard_price
@@ -176,7 +176,7 @@ async def new_device_name(message: Message, state: FSMContext):
         outline_client = outline_manager.create_client(message.from_user.id, limit)
         await message.answer(f"""Нажмите на ключ ниже, чтобы скопировать его 👇
 <code>{outline_client['accessUrl']}#OberVPN</code>""",
-                                  reply_markup=user_kb.show_menu)
+                             reply_markup=user_kb.show_menu)
         await db.set_outline_id(device_id, outline_client["id"])
         history_msg = "Создание ключа"
 

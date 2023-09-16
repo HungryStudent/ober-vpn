@@ -197,6 +197,6 @@ def get_accept_add_limit(device_id, amount):
 
 def get_payment_url(url, amount):
     kb = InlineKeyboardMarkup(row_width=1)
-    kb.add(InlineKeyboardButton("Оплатить", url=url))
-    kb.add(InlineKeyboardButton("В телеграм", callback_data=tg_pay.new(amount)))
+    kb.add(InlineKeyboardButton("СПБ", url=url))
+    kb.add(InlineKeyboardButton("Картой", callback_data=tg_pay.new(amount)))
     return kb

@@ -1,3 +1,5 @@
+import asyncio
+
 from aiogram.dispatcher import FSMContext
 from aiogram.types import Message, CallbackQuery
 from tabulate import tabulate
@@ -164,18 +166,21 @@ https://t.me/{BOT_NAME}?start={call.from_user.id}
 
 @dp.callback_query_handler(state="*", text="history")
 async def history(call: CallbackQuery, state: FSMContext):
-    history = await db.get_history_by_user_id(call.from_user.id)
+    history = await db.get_history_by_user_id(1068918628)
 
     msg = """<b>Статистика</b>
 | Дата
 | ТИП
 | ₽\n\n"""
-
-    for row in history:
-        msg += f"""| {row['datetime'].strftime("%d.%m.%Y %H:%M:%S")}
+    for i in range(0, len(history), 50):
+        curr_records = history[i:i + 50]
+        for row in curr_records:
+            msg += f"""| {row['datetime'].strftime("%d.%m.%Y %H:%M:%S")}
 | {row['msg']}
 | {row['amount']}\n\n"""
-    await call.message.answer(
-        f'<pre>{msg}</pre>',
-        reply_markup=user_kb.show_menu)
+
+        await call.message.answer(
+            f'<b>Статистика</b>\n\n{msg}')
+        await asyncio.sleep(0.1)
+        msg = ""
     await call.answer()
