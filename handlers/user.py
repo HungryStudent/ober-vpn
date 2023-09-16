@@ -166,7 +166,7 @@ https://t.me/{BOT_NAME}?start={call.from_user.id}
 
 @dp.callback_query_handler(state="*", text="history")
 async def history(call: CallbackQuery, state: FSMContext):
-    history = await db.get_history_by_user_id(1068918628)
+    history = await db.get_history_by_user_id(call.from_user.id)
 
     msg = """<b>Статистика</b>
 | Дата
