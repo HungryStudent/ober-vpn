@@ -1,3 +1,5 @@
+import asyncio
+
 from aiogram.dispatcher import FSMContext
 from aiogram.types import Message, CallbackQuery
 
@@ -36,3 +38,25 @@ async def change_balance_amount(message: Message, state: FSMContext):
     await db.update_user_balance(data["user_id"], amount)
     await message.answer("Баланс изменен", reply_markup=admin_kb.ReplyKeyboardRemove())
     await state.finish()
+
+
+@dp.callback_query_handler(is_admin=True, text="admin_pay_history", state="*")
+async def admin_pay_history(call: CallbackQuery, state: FSMContext):
+    history = await db.get_history_by_msg('Пополнение')
+
+    msg = """<b>Пополнения</b>
+| Дата
+| user_id
+| ₽\n\n"""
+    for i in range(0, len(history), 50):
+        curr_records = history[i:i + 50]
+        for row in curr_records:
+            msg += f"""| {row['datetime'].strftime("%d.%m.%Y %H:%M:%S")}
+| {row['user_id']}
+| {row['amount']}\n\n"""
+
+        await call.message.answer(
+            msg)
+        await asyncio.sleep(0.1)
+        msg = ""
+    await call.answer()

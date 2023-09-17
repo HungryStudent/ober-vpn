@@ -113,7 +113,7 @@ async def new_device_device_type(call: CallbackQuery, state: FSMContext):
 Золото    — 30 дней/500ГБ Цена 250 руб""",
                                      reply_markup=user_kb.get_limit())
         return await state.set_state(NewDevice.limit)
-    elif user["balance"] <= wireguard_price:
+    elif user["balance"] < wireguard_price:
         await call.message.edit_text("Недостаточно баланса для создания конфига", reply_markup=user_kb.show_menu)
         return await state.finish()
     await state.update_data(device_type=call.data)

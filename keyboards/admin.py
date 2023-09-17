@@ -1,8 +1,13 @@
+from datetime import datetime
+
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton, \
     ReplyKeyboardRemove
 from aiogram.utils.callback_data import CallbackData
 
 from config_parser import outline_prices
+import database as db
+import utils.server as server_utils
+from utils.devices import get_days_text
 
 admin_country = CallbackData("admin_country", "country_id")
 change_country = CallbackData("change_country", "country_id", "field")
@@ -32,6 +37,7 @@ menu = InlineKeyboardMarkup(row_width=1).add(InlineKeyboardButton("Сервер�
                                              InlineKeyboardButton("Конфиги", callback_data="admin_devices"),
                                              InlineKeyboardButton("Бан/Разбан", callback_data="admin_ban"),
                                              InlineKeyboardButton("Изменить баланс", callback_data="admin_balance"),
+                                             InlineKeyboardButton("Пополнения", callback_data="admin_pay_history"),
                                              InlineKeyboardButton("Удалить пользователя", callback_data="delete_user"),
                                              InlineKeyboardButton("Ежедневный отчет", callback_data="report"),
                                              InlineKeyboardButton("Админы", callback_data="admins"))
@@ -84,11 +90,25 @@ def get_delete_server(server_id):
     return kb
 
 
-def get_devices(devices):
-    kb = InlineKeyboardMarkup(row_width=1)
-    for device in devices:
-        kb.add(InlineKeyboardButton(f"{device['name']} ({device['device_type']})",
-                                    callback_data=admin_device.new(device["device_id"])))
+async def get_devices(devices):
+    kb = InlineKeyboardMarkup(row_width=2)
+    for my_device in devices:
+        device_type = "(WG)" if my_device["device_type"] == "wireguard" else "(OL)"
+        days = (my_device["sub_time"] - datetime.today()).days
+        day_text = get_days_text(days)
+        limit = ""
+        if my_device["device_type"] == "outline":
+            server = await db.get_server(my_device["server_id"])
+            outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
+            outline_client = outline_manager.get_client(my_device["outline_id"])
+            try:
+                outline_client_usage = outline_manager.get_usage_data(outline_client["id"])
+            except TypeError:
+                outline_client_usage = 0
+            usage_gb = outline_client_usage // (1000 ** 3)
+            limit = f"({usage_gb}/{my_device['outline_limit']}ГБ)"
+        kb.add(InlineKeyboardButton(f"{device_type}({days} {day_text}){limit} {my_device['name']}",
+                                    callback_data=admin_device.new(my_device["device_id"])))
     return kb
 
 

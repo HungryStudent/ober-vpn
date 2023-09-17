@@ -29,7 +29,7 @@ async def get_client_devices(message: Message, state: FSMContext):
         return await message.answer("У данного пользователя нет устройств", reply_markup=admin_kb.menu)
     msg = await message.answer("Поиск пользователя", reply_markup=admin_kb.ReplyKeyboardRemove())
     await msg.delete()
-    await message.answer(f"Устройства пользователя {user_id}:", reply_markup=admin_kb.get_devices(devices))
+    await message.answer(f"Устройства пользователя {user_id}:", reply_markup=await admin_kb.get_devices(devices))
     await state.finish()
 
 

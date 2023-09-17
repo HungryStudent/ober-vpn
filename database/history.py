@@ -15,3 +15,10 @@ async def get_history_by_user_id(user_id):
     rows = await conn.fetch("SELECT * from history WHERE user_id = $1", user_id)
     await conn.close()
     return rows
+
+
+async def get_history_by_msg(msg):
+    conn: Connection = await get_conn()
+    rows = await conn.fetch("SELECT * from history WHERE msg = $1", msg)
+    await conn.close()
+    return rows
