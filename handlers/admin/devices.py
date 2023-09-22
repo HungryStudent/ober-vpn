@@ -41,10 +41,10 @@ async def admin_device(call: CallbackQuery, state: FSMContext, callback_data: di
     if device["device_type"] == "wireguard":
         await server_utils.get_wireguard_config(server["ip_address"], server["server_password"], device_id,
                                                 call.from_user.id)
-        await call.message.answer_photo(open(f"OberVPN_{call.from_user.id}_{device_id}.png", "rb"))
-        await call.message.answer_document(open(f"OberVPN_{call.from_user.id}_{device_id}.conf", "rb"))
-        os.remove(f"OberVPN_{call.from_user.id}_{device_id}.png")
-        os.remove(f"OberVPN_{call.from_user.id}_{device_id}.conf")
+        await call.message.answer_photo(open(f"OberVPN-{call.from_user.id}-{device_id}.png", "rb"))
+        await call.message.answer_document(open(f"OberVPN-{call.from_user.id}-{device_id}.conf", "rb"))
+        os.remove(f"OberVPN-{call.from_user.id}-{device_id}.png")
+        os.remove(f"OberVPN-{call.from_user.id}-{device_id}.conf")
     elif device["device_type"] == "outline":
         outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
         outline_client = outline_manager.get_client(device["outline_id"])
