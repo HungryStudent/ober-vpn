@@ -163,11 +163,11 @@ async def new_device_name(message: Message, state: FSMContext):
         await server_utils.create_wireguard_config(server["ip_address"], server["server_password"], device_id)
         await server_utils.get_wireguard_config(server["ip_address"], server["server_password"], device_id,
                                                 number)
-        await message.answer_photo(open(f"OberVPN-{message.from_user.id}-{device_id}.png", "rb"))
-        await message.answer_document(open(f"OberVPN-{message.from_user.id}-{device_id}.conf", "rb"),
+        await message.answer_photo(open(f"OberVPN-{number}.png", "rb"))
+        await message.answer_document(open(f"OberVPN-{number}.conf", "rb"),
                                       reply_markup=user_kb.show_menu)
-        os.remove(f"OberVPN-{message.from_user.id}-{device_id}.png")
-        os.remove(f"OberVPN-{message.from_user.id}-{device_id}.conf")
+        os.remove(f"OberVPN-{number}.png")
+        os.remove(f"OberVPN-{number}.conf")
         price = wireguard_price
         history_msg = "Создание конфига"
     elif data["device_type"] == "outline":
@@ -216,11 +216,11 @@ async def new_device_country(call: CallbackQuery, state: FSMContext, callback_da
         await server_utils.create_wireguard_config(server["ip_address"], server["server_password"], device_id)
         await server_utils.get_wireguard_config(server["ip_address"], server["server_password"], device_id,
                                                 number)
-        await call.message.answer_photo(open(f"OberVPN-{call.from_user.id}-{device_id}.png", "rb"))
-        await call.message.answer_document(open(f"OberVPN-{call.from_user.id}-{device_id}.conf", "rb"),
+        await call.message.answer_photo(open(f"OberVPN-{number}.png", "rb"))
+        await call.message.answer_document(open(f"OberVPN-{number}.conf", "rb"),
                                            reply_markup=user_kb.show_menu)
-        os.remove(f"OberVPN-{call.from_user.id}-{device_id}.png")
-        os.remove(f"OberVPN-{call.from_user.id}-{device_id}.conf")
+        os.remove(f"OberVPN-{number}.png")
+        os.remove(f"OberVPN-{number}.conf")
         price = wireguard_price
         history_msg = "Создание конфига"
     elif data["device_type"] == "outline":
@@ -320,7 +320,7 @@ async def device_menu(call: CallbackQuery, state: FSMContext, callback_data: dic
         number = randint(10000, 99999)
         await server_utils.get_wireguard_config(server["ip_address"], server["server_password"], device_id,
                                                 number)
-        await call.message.answer_photo(open(f"OberVPN-{call.from_user.id}-{device_id}.png", "rb"))
+        await call.message.answer_photo(open(f"OberVPN-{number}.png", "rb"))
         days = (device["sub_time"] - datetime.today()).days
         active = ""
         is_active = True
@@ -331,11 +331,11 @@ async def device_menu(call: CallbackQuery, state: FSMContext, callback_data: dic
             days = 0
         day_text = get_days_text(days)
 
-        await call.message.answer_document(open(f"OberVPN-{call.from_user.id}-{device_id}.conf", "rb"),
+        await call.message.answer_document(open(f"OberVPN-{number}.conf", "rb"),
                                            caption=f"Осталось {days} {day_text}\n\n{active}{auto_renewal_text}",
                                            reply_markup=user_kb.get_wg_device(device, is_active))
-        os.remove(f"OberVPN-{call.from_user.id}-{device_id}.png")
-        os.remove(f"OberVPN-{call.from_user.id}-{device_id}.conf")
+        os.remove(f"OberVPN-{number}.png")
+        os.remove(f"OberVPN-{number}.conf")
     elif device["device_type"] == "outline":
         outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
         outline_client = outline_manager.get_client(device["outline_id"])
@@ -391,8 +391,8 @@ async def auto_renewal(call: CallbackQuery, state: FSMContext, callback_data: di
         await call.message.edit_caption(
             caption=f"{active}{auto_renewal_text}",
             reply_markup=user_kb.get_wg_device(device, is_active))
-        os.remove(f"OberVPN-{call.from_user.id}-{device_id}.png")
-        os.remove(f"OberVPN-{call.from_user.id}-{device_id}.conf")
+        os.remove(f"OberVPN-{number}.png")
+        os.remove(f"OberVPN-{number}.conf")
     else:
         outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
         outline_client = outline_manager.get_client(device["outline_id"])
