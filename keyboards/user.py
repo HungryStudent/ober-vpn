@@ -38,9 +38,9 @@ menu = InlineKeyboardMarkup(row_width=2).add(
 ).add(
     InlineKeyboardButton("💵Пополнить", callback_data="balance_menu"),
     InlineKeyboardButton("🧍‍♂️Пригласить", callback_data="ref_menu")
-    # InlineKeyboardButton("Помощь", callback_data="help"),
 
-).add(InlineKeyboardButton("🧾История платежей", callback_data="history"))
+).add(InlineKeyboardButton("🧾Платежи", callback_data="history"),
+      InlineKeyboardButton("📖Помощь", callback_data="help"))
 
 choose_device_type = InlineKeyboardMarkup(row_width=2).add(
     InlineKeyboardButton("WireGuard", callback_data="wireguard"),
@@ -53,12 +53,17 @@ balance = InlineKeyboardMarkup(row_width=3).add(
 balance.add(InlineKeyboardButton("Указать свою сумму", callback_data=payment.new(0)))
 
 support = InlineKeyboardMarkup(row_width=1).add(
-    InlineKeyboardButton("Инструкция по установке", callback_data=help_post.new("install")),
-    InlineKeyboardButton("Инструкция по установке", callback_data=help_post.new("install")),
-    InlineKeyboardButton("Инструкция по установке", callback_data=help_post.new("install")))
+    InlineKeyboardButton("Не работает VPN", callback_data=help_post.new("no_work")),
+    InlineKeyboardButton("Низкая скорость", callback_data=help_post.new("small_speed")),
+    InlineKeyboardButton("Инструкция по установке", callback_data=help_post.new("other")))
 
 first_device = InlineKeyboardMarkup(row_width=1).add(
-    InlineKeyboardButton("Добавить устройство", callback_data="first_device"))
+    InlineKeyboardButton("Другое", callback_data="first_device"))
+
+help_menu = InlineKeyboardMarkup(row_width=1).add(
+    InlineKeyboardButton("🛠️Техподдержка", url="https://t.me/obervpn_chat"),
+    InlineKeyboardButton("🏠Главное меню", callback_data="show_menu")
+)
 
 
 async def get_devices(devices):
