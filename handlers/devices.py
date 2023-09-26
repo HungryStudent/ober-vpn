@@ -360,7 +360,7 @@ async def device_menu(call: CallbackQuery, state: FSMContext, callback_data: dic
 {auto_renewal_text}
 
 Нажмите на ключ ниже, чтобы скопировать его 👇""")
-        await call.message.answer("<code>{outline_client['accessUrl']}#OberVPN</code>",
+        await call.message.answer(f"<code>{outline_client['accessUrl']}#OberVPN</code>",
                                   reply_markup=user_kb.get_outline_device(device, is_active))
 
     await call.answer()
@@ -413,7 +413,7 @@ async def auto_renewal(call: CallbackQuery, state: FSMContext, callback_data: di
 {auto_renewal_text}
 
 Нажмите на ключ ниже, чтобы скопировать его 👇""")
-        await call.message.answer("<code>{outline_client['accessUrl']}#OberVPN</code>",
+        await call.message.answer(f"<code>{outline_client['accessUrl']}#OberVPN</code>",
                                   reply_markup=user_kb.get_outline_device(device, is_active))
 
 
