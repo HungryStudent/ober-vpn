@@ -1,4 +1,5 @@
 import os
+from random import randint
 
 from aiogram.dispatcher import FSMContext
 from aiogram.types import Message, CallbackQuery
@@ -39,8 +40,9 @@ async def admin_device(call: CallbackQuery, state: FSMContext, callback_data: di
     device = await db.get_device(device_id)
     server = await db.get_server(device["server_id"])
     if device["device_type"] == "wireguard":
+        number = randint(10000, 99999)
         await server_utils.get_wireguard_config(server["ip_address"], server["server_password"], device_id,
-                                                call.from_user.id)
+                                                number)
         await call.message.answer_photo(open(f"OberVPN-{call.from_user.id}-{device_id}.png", "rb"))
         await call.message.answer_document(open(f"OberVPN-{call.from_user.id}-{device_id}.conf", "rb"))
         os.remove(f"OberVPN-{call.from_user.id}-{device_id}.png")
