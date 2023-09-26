@@ -55,7 +55,7 @@ balance.add(InlineKeyboardButton("Указать свою сумму", callback_
 support = InlineKeyboardMarkup(row_width=1).add(
     InlineKeyboardButton("Не работает VPN", callback_data=help_post.new("no_work")),
     InlineKeyboardButton("Низкая скорость", callback_data=help_post.new("small_speed")),
-    InlineKeyboardButton("Инструкция по установке", callback_data=help_post.new("other")))
+    InlineKeyboardButton("Другое", callback_data=help_post.new("other")))
 
 first_device = InlineKeyboardMarkup(row_width=1).add(
     InlineKeyboardButton("Другое", callback_data="first_device"))
