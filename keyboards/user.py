@@ -71,6 +71,8 @@ async def get_devices(devices):
     for my_device in devices:
         device_type = "(WG)" if my_device["device_type"] == "wireguard" else "(OL)"
         days = (my_device["sub_time"] - datetime.today()).days
+        if days == 0:
+            days = 1
         day_text = get_days_text(days)
         limit = ""
         if my_device["device_type"] == "outline":
@@ -100,6 +102,8 @@ async def get_delete_devices(devices):
     for my_device in devices:
         device_type = "(WG)" if my_device["device_type"] == "wireguard" else "(OL)"
         days = (my_device["sub_time"] - datetime.today()).days
+        if days == 0:
+            days = 1
         day_text = get_days_text(days)
         limit = ""
         if my_device["device_type"] == "outline":
