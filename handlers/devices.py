@@ -346,7 +346,8 @@ async def device_menu(call: CallbackQuery, state: FSMContext, callback_data: dic
         usage_gb = outline_client_usage // (1000 ** 3)
         limit_gb = outline_client['dataLimit']['bytes'] // (1000 ** 3)
         days = (device["sub_time"] - datetime.today()).days
-
+        if days == 0:
+            days = 1
         active = ""
         is_active = True
         if days <= 0 or usage_gb >= limit_gb:
@@ -401,7 +402,8 @@ async def auto_renewal(call: CallbackQuery, state: FSMContext, callback_data: di
         usage_gb = outline_client_usage // (1000 ** 3)
         limit_gb = outline_client['dataLimit']['bytes'] // (1000 ** 3)
         days = (device["sub_time"] - datetime.today()).days
-
+        if days == 0:
+            days = 1
         active = ""
         is_active = True
         if days <= 0 or usage_gb >= limit_gb:

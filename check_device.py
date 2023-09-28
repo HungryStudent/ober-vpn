@@ -9,9 +9,7 @@ from keyboards import user as user_kb
 
 
 async def main():
-    users = await db.get_users()
     devices = await db.get_devices_with_expired_sub_time_and_has_auto_renewal()
-    print(devices)
     for device in devices:
         user = await db.get_user(device["user_id"])
         price = 0
@@ -39,7 +37,7 @@ async def main():
         server = await db.get_server(device["server_id"])
         if device["device_type"] == "wireguard":
             await server_utils.enable_wireguard_config(server["ip_address"], server["server_password"],
-                                                        device["device_id"])
+                                                       device["device_id"])
         elif device["device_type"] == "outline":
             outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
             outline_manager.set_data_limit(device["outline_id"], limit)

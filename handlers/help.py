@@ -42,5 +42,6 @@ iOS/iPadOS:
 
 Android:
 Настройка Outline —  <a href='https://youtu.be/PIvgt_43RRo'>ссылка</a>
-Настройка WireGuard — <a href='https://youtu.be/doCCWT-dAEI'>ссылка</a>""", reply_markup=user_kb.show_menu)
+Настройка WireGuard — <a href='https://youtu.be/doCCWT-dAEI'>ссылка</a>""", reply_markup=user_kb.show_menu,
+                              disable_web_page_preview=True)
     await call.answer()
