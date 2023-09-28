@@ -414,7 +414,7 @@ async def auto_renewal(call: CallbackQuery, state: FSMContext, callback_data: di
 
 Нажмите на ключ ниже, чтобы скопировать его 👇""", chat_id=call.from_user.id, message_id=call.message.message_id - 1)
         await call.message.edit_text(f"<code>{outline_client['accessUrl']}#OberVPN</code>",
-                                  reply_markup=user_kb.get_outline_device(device, is_active))
+                                     reply_markup=user_kb.get_outline_device(device, is_active))
 
 
 @dp.callback_query_handler(user_kb.resume_device.filter())

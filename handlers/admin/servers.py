@@ -8,7 +8,7 @@ from config_parser import wireguard_price, outline_prices
 from create_bot import dp
 from states.admin import CreateServer, ChangeServer
 from utils import server as server_utils
-
+import asyncio
 
 @dp.callback_query_handler(admin_kb.admin_server.filter(), is_admin=True)
 async def admin_countries(call: CallbackQuery, callback_data: dict):
