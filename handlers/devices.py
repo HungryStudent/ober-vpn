@@ -324,6 +324,8 @@ async def device_menu(call: CallbackQuery, state: FSMContext, callback_data: dic
         days = (device["sub_time"] - datetime.today()).days
         active = ""
         is_active = True
+        if days == 0:
+            days = 1
         if days <= 0:
             is_active = False
             active = "\nКонфиг неактивен\n\n"
@@ -384,6 +386,8 @@ async def auto_renewal(call: CallbackQuery, state: FSMContext, callback_data: di
         await server_utils.get_wireguard_config(server["ip_address"], server["server_password"], device_id,
                                                 number)
         days = (device["sub_time"] - datetime.today()).days
+        if days == 0:
+            days = 1
         active = ""
         is_active = True
         if days <= 0:
