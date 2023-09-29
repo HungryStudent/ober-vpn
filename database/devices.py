@@ -10,11 +10,12 @@ async def get_devices_by_user_id(user_id):
     return rows
 
 
-async def get_devices_with_expired_sub_time_and_has_auto_renewal():
+async def get_devices_expired_sub_time_by_has_auto_renewal(status):
     conn: Connection = await get_conn()
-    rows = await conn.fetch("SELECT * FROM devices WHERE sub_time < NOW() and has_auto_renewal = True")
+    rows = await conn.fetch("SELECT * FROM devices WHERE sub_time < NOW() and has_auto_renewal = $1", status)
     await conn.close()
     return rows
+
 
 async def get_devices_by_user_id_and_device_type(user_id, device_type):
     conn: Connection = await get_conn()
@@ -49,15 +50,18 @@ async def set_outline_id(device_id, outline_id):
     await conn.execute("UPDATE devices SET outline_id = $2 WHERE device_id = $1", device_id, outline_id)
     await conn.close()
 
+
 async def set_has_auto_renewal(device_id, status):
     conn: Connection = await get_conn()
     await conn.execute("UPDATE devices SET has_auto_renewal = $2 WHERE device_id = $1", device_id, status)
     await conn.close()
 
+
 async def set_outline_limit(device_id, limit):
     conn: Connection = await get_conn()
     await conn.execute("UPDATE devices SET outline_limit = $2 WHERE device_id = $1", device_id, limit)
     await conn.close()
+
 
 async def set_sub_time(device_id, sub_time):
     conn: Connection = await get_conn()

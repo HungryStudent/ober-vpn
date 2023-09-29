@@ -9,7 +9,7 @@ from keyboards import user as user_kb
 
 
 async def main():
-    devices = await db.get_devices_with_expired_sub_time_and_has_auto_renewal()
+    devices = await db.get_devices_expired_sub_time_by_has_auto_renewal(True)
     for device in devices:
         user = await db.get_user(device["user_id"])
         price = 0
@@ -43,6 +43,19 @@ async def main():
             outline_manager.set_data_limit(device["outline_id"], limit)
         await db.update_user_balance(user["user_id"], -price)
         await db.add_history_record(user["user_id"], price, history_msg)
+
+    devices = await db.get_devices_expired_sub_time_by_has_auto_renewal(False)
+    print(devices)
+    for device in devices:
+        server = await db.get_server(device["server_id"])
+        if device["device_type"] == "wireguard":
+            await server_utils.disable_wireguard_config(server["ip_address"], server["server_password"],
+                                                        device["device_id"])
+            continue
+        elif device["device_type"] == "outline":
+            outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
+            outline_manager.set_data_limit(device["outline_id"], 0)
+            continue
     #
     # for user in users:
     #     if not user["is_wireguard_active"]:

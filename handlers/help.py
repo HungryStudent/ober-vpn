@@ -37,7 +37,7 @@ async def video_help(call: CallbackQuery, state: FSMContext):
     await call.message.answer("""Ниже представлены ссылки на видеоинструкции по настройке VPN:
 
 iOS/iPadOS:
-Настройка Outline —  <a href='https://youtu.be/TzBHYfvZ4jE'>ссылка</a>
+Настройка Outline —  <a href='https://youtu.be/l9rZnaOw_dU'>ссылка</a>
 Настройка WireGuard — <a href='https://youtu.be/56ULmBV4QSE'>ссылка</a>
 
 Android:
