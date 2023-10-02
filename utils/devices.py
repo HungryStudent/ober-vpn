@@ -63,7 +63,7 @@ async def get_stats_for_menu(user):
             outline_client = outline_manager.get_client(device["outline_id"])
             outline_client_usage = outline_manager.get_usage_data(outline_client["id"])
             usage_gb = outline_client_usage // (1000 ** 3)
-            limit_gb = outline_client['dataLimit']['bytes'] // (1000 ** 3)
+            limit_gb = device["outline_limit"]
             if usage_gb < limit_gb:
                 outline_status = "активен"
                 outline_desc = ""
@@ -105,7 +105,7 @@ async def get_stats_by_country(user, country_id):
             outline_client = outline_manager.get_client(device["outline_id"])
             outline_client_usage = outline_manager.get_usage_data(outline_client["id"])
             usage_gb = outline_client_usage // (1000 ** 3)
-            limit_gb = outline_client['dataLimit']['bytes'] // (1000 ** 3)
+            limit_gb = device["outline_limit"]
             if usage_gb < limit_gb:
                 outline_status = "активен"
                 outline_desc = ""
@@ -115,3 +115,12 @@ async def get_stats_by_country(user, country_id):
         "days": days, "wireguard_status": wireguard_status, "wireguard_desc": wireguard_desc,
         "outline_status": outline_status, "outline_desc": outline_desc
     }
+
+
+async def get_outline_gb(device_id):
+    device = await db.get_device(device_id)
+    server = await db.get_server(device["server_id"])
+    outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
+    outline_client = outline_manager.get_client(device["outline_id"])
+    outline_client_usage = outline_manager.get_usage_data(outline_client["id"])
+    usage_gb = outline_client_usage // (1000 ** 3) - device["outline_traffic"]

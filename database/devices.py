@@ -17,6 +17,14 @@ async def get_devices_expired_sub_time_by_has_auto_renewal(status):
     return rows
 
 
+async def get_devices_expired_sub_time_by_has_auto_renewal_and_user_id(status, user_id):
+    conn: Connection = await get_conn()
+    rows = await conn.fetch("SELECT * FROM devices WHERE sub_time < NOW() and has_auto_renewal = $1 and user_id = $2",
+                            status, user_id)
+    await conn.close()
+    return rows
+
+
 async def get_devices_by_user_id_and_device_type(user_id, device_type):
     conn: Connection = await get_conn()
     rows = await conn.fetch("SELECT * FROM devices WHERE user_id = $1 AND device_type = $2", user_id, device_type)
@@ -102,4 +110,16 @@ async def get_wireguard_devices_for_payment(user_id):
 async def set_devices_has_first_payment(user_id):
     conn: Connection = await get_conn()
     await conn.execute("UPDATE devices SET has_first_payment = True where user_id = $1", user_id)
+    await conn.close()
+
+
+async def set_device_status(device_id, status):
+    conn: Connection = await get_conn()
+    await conn.execute("UPDATE devices SET status = $2 WHERE device_id = $1", device_id, status)
+    await conn.close()
+
+
+async def set_device_outline_traffic(device_id, traffic):
+    conn: Connection = await get_conn()
+    await conn.execute("UPDATE devices SET outline_traffic = $2 WHERE device_id = $1", device_id, traffic)
     await conn.close()
