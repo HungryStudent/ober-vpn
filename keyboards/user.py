@@ -157,14 +157,14 @@ def get_outline_device(device, is_active):
     kb = InlineKeyboardMarkup(row_width=1)
     if not is_active:
         kb.add(InlineKeyboardButton("Возобновить тариф", callback_data=resume_device.new(device["device_id"])))
+
+    if device["has_auto_renewal"]:
+        auto_renewal_text = "Откл. Автопродление"
     else:
-        if device["has_auto_renewal"]:
-            auto_renewal_text = "Откл. Автопродление"
-        else:
-            auto_renewal_text = "Вкл. Автопродление"
-        kb.add(InlineKeyboardButton(auto_renewal_text,
-                                    callback_data=auto_renewal.new(device["device_id"],
-                                                                   not device["has_auto_renewal"])))
+        auto_renewal_text = "Вкл. Автопродление"
+    kb.add(InlineKeyboardButton(auto_renewal_text,
+                                callback_data=auto_renewal.new(device["device_id"],
+                                                               not device["has_auto_renewal"])))
     kb.add(InlineKeyboardButton("Назад", callback_data="devices"))
     kb.add(InlineKeyboardButton("🏠Главное меню", callback_data="show_menu"))
     return kb
@@ -174,14 +174,14 @@ def get_wg_device(device, is_active):
     kb = InlineKeyboardMarkup(row_width=1)
     if not is_active:
         kb.add(InlineKeyboardButton("Продлить", callback_data=extend_device.new(device["device_id"])))
+
+    if device["has_auto_renewal"]:
+        auto_renewal_text = "Откл. Автопродление"
     else:
-        if device["has_auto_renewal"]:
-            auto_renewal_text = "Откл. Автопродление"
-        else:
-            auto_renewal_text = "Вкл. Автопродление"
-        kb.add(InlineKeyboardButton(auto_renewal_text,
-                                    callback_data=auto_renewal.new(device["device_id"],
-                                                                   not device["has_auto_renewal"])))
+        auto_renewal_text = "Вкл. Автопродление"
+    kb.add(InlineKeyboardButton(auto_renewal_text,
+                                callback_data=auto_renewal.new(device["device_id"],
+                                                               not device["has_auto_renewal"])))
     kb.add(InlineKeyboardButton("Назад", callback_data="devices"))
     kb.add(InlineKeyboardButton("🏠Главное меню", callback_data="show_menu"))
     return kb
