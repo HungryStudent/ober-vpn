@@ -69,6 +69,8 @@ help_menu = InlineKeyboardMarkup(row_width=1).add(
 async def params_for_device(my_device):
     device_type = "(WG)" if my_device["device_type"] == "wireguard" else "(OL)"
     days = (my_device["sub_time"] - datetime.today()).days
+    if my_device["sub_time"].date() == datetime.today().date():
+        days = 1
     if days == 0:
         days = 1
     if days < 0:
