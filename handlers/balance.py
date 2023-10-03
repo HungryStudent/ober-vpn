@@ -10,6 +10,7 @@ from keyboards import user as user_kb
 from utils import pay
 from states.user import BalanceAmount
 from utils import server as server_utils
+from utils.devices import check_after_change_balance
 
 
 @dp.message_handler(commands="topup", state="*")
@@ -87,31 +88,4 @@ async def process_successful_payment(message: Message):
     await message.answer(f"""Платеж проведен. На Ваш аккаунт зачислено {amount}₽ 
 
 Ваш баланс: {user['balance']}₽""", reply_markup=user_kb.show_menu)
-    devices = await db.get_devices_expired_sub_time_by_has_auto_renewal_and_user_id(True, message.from_user.id)
-    for device in devices:
-        user = await db.get_user(device["user_id"])
-        price = 0
-        history_msg = "Оплата конфигов"
-        if device["device_type"] == "wireguard":
-            price = wireguard_price
-        elif device["device_type"] == "outline":
-            price = outline_prices[device["product_id"]]["price"]
-            history_msg = "Оплата ключей"
-        if user["balance"] >= price:
-            await db.set_device_status(device["device_id"], True)
-            sub_time = datetime.now() + timedelta(days=31)
-            await db.set_sub_time(device["device_id"], sub_time)
-            server = await db.get_server(device["server_id"])
-            if device["device_type"] == "wireguard":
-                await server_utils.enable_wireguard_config(server["ip_address"], server["server_password"],
-                                                           device["device_id"])
-            elif device["device_type"] == "outline":
-                outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
-                outline_client = outline_manager.get_client(device["outline_id"])
-                outline_client_usage = outline_manager.get_usage_data(outline_client["id"]) // (1000 ** 3)
-                await db.set_device_outline_traffic(device["device_id"], outline_client_usage)
-                limit = outline_client['dataLimit']['bytes'] // (1000 ** 3) + outline_client_usage
-                outline_manager.set_data_limit(device["outline_id"], limit)
-
-            await db.update_user_balance(user["user_id"], -price)
-            await db.add_history_record(user["user_id"], price, history_msg)
+    await check_after_change_balance(message.from_user.id)

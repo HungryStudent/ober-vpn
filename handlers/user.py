@@ -3,7 +3,7 @@ import asyncio
 from aiogram.dispatcher import FSMContext
 from aiogram.types import Message, CallbackQuery
 from tabulate import tabulate
-
+from utils.devices import check_after_change_balance
 import database as db
 import keyboards.user as user_kb
 import utils.devices
@@ -74,6 +74,7 @@ async def start_command(message: Message, state: FSMContext):
                                                       inviter_firstname=inviter["firstname"])
                 await db.update_user_balance(inviter_id, 50)
                 await db.add_history_record(inviter_id, 50, "Реферальный бонус")
+                await check_after_change_balance(message.from_user.id)
         user = await db.add_user(message.from_user.id, message.from_user.username, message.from_user.first_name,
                                  inviter_id)
     else:
