@@ -122,7 +122,6 @@ async def process_successful_payment(message: Message):
             outline_client_usage = outline_manager.get_usage_data(outline_client["id"]) // (1000 ** 3)
             await db.set_device_outline_traffic(device["device_id"], outline_client_usage)
             limit = outline_client['dataLimit']['bytes'] // (1000 ** 3) + outline_client_usage
-            await db.set_outline_limit(device["device_id"], limit)
             outline_manager.set_data_limit(device["outline_id"], limit)
 
         await db.update_user_balance(user["user_id"], -price)

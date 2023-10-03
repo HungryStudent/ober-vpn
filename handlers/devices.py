@@ -300,22 +300,28 @@ async def delete_device(call: CallbackQuery, callback_data: dict):
     device = await db.get_device(device_id)
     days = (device["sub_time"] - datetime.today()).days
     day_text = get_days_text(days)
-
-    if device["device_type"] == "outline":
-        server = await db.get_server(device["server_id"])
-        outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
-        outline_client = outline_manager.get_client(device["outline_id"])
-        outline_client_usage = outline_manager.get_usage_data(outline_client["id"])
-        usage_gb = outline_client_usage // (1000 ** 3) - device["outline_traffic"]
-        limit_gb = device["outline_limit"]
-        remaining_gb = limit_gb - usage_gb
-        msg = f"""Не рекомендуем удалять устройство, поскольку Вам еще доступно {days} {day_text} и {remaining_gb} ГБ
-
+    if days > 0:
+        if device["device_type"] == "outline":
+            server = await db.get_server(device["server_id"])
+            outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
+            outline_client = outline_manager.get_client(device["outline_id"])
+            outline_client_usage = outline_manager.get_usage_data(outline_client["id"])
+            usage_gb = outline_client_usage // (1000 ** 3) - device["outline_traffic"]
+            limit_gb = device["outline_limit"]
+            remaining_gb = limit_gb - usage_gb
+            msg = f"""Не рекомендуем удалять устройство, поскольку Вам еще доступно {days} {day_text} и {remaining_gb} ГБ
+    
 Восстановление ключа будет невозможным."""
-    else:
-        msg = f"""Не рекомендуем удалять устройство, поскольку Вам еще доступно {days} {day_text}.
-
+        else:
+            msg = f"""Не рекомендуем удалять устройство, поскольку Вам еще доступно {days} {day_text}.
+    
 Восстановление конфиг-файла будет невозможным."""
+    else:
+        if device["device_type"] == "outline":
+
+            msg = "Восстановление ключа будет невозможным."
+        else:
+            msg = "Восстановление конфиг-файла будет невозможным."
     await call.message.answer(msg,
                               reply_markup=user_kb.get_delete_device(device_id))
     await call.answer()

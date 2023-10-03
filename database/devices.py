@@ -42,6 +42,17 @@ async def get_devices_by_user_id_and_device_type_and_country_id(user_id, device_
     return rows
 
 
+async def get_devices_stat_wg(user_id):
+    conn: Connection = await get_conn()
+    row = await conn.fetchrow("select count(*) as all_devices,"
+                              "count(sub_time < now() and has_auto_renewal = true or null) as no_sub_auto_renewal, "
+                              "count(sub_time < now() and has_auto_renewal = false or null) as no_sub_no_auto_renewal, "
+                              "count(sub_time < now() or null) as no_sub, "
+                              "count(sub_time > now() or null) as sub "
+                              "from devices where user_id = $1 and device_type = 'wireguard'", user_id)
+    await conn.close()
+    return row
+
 async def add_new_device(user_id, device_type, name, server_id, sub_time, product_id=None, outline_limit=None):
     conn: Connection = await get_conn()
     device_id = await conn.fetchval(

@@ -1,5 +1,5 @@
 from aiogram import Bot
-
+from datetime import datetime
 import database as db
 from config_parser import wireguard_price
 from utils import server as server_utils
@@ -34,21 +34,22 @@ async def check_wireguard_active(user_id, bot: Bot):
 
 
 async def get_stats_for_menu(user):
-    devices = await db.get_devices_by_user_id_and_device_type(user["user_id"], "wireguard")
-    amount = len(devices) * wireguard_price
-    try:
-        days = float(user["balance"]) // amount
-    except ZeroDivisionError:
-        days = 0
-    if user["is_wireguard_active"]:
-        wireguard_status = "активен"
-        wireguard_desc = ""
-    else:
-        wireguard_status = "не активен"
-        wireguard_desc = "(недостаточно средств)"
-    if len(devices) == 0:
+    devices_stat = await db.get_devices_stat_wg(user["user_id"])
+    wireguard_status = "активен"
+    wireguard_desc = ""
+    print(devices_stat)
+    if devices_stat["all_devices"] == 0:
         wireguard_status = "не активен"
         wireguard_desc = "(нет конфигов)"
+    elif devices_stat["no_sub_auto_renewal"] > 0 and devices_stat["sub"] > 0:
+        wireguard_status = "частично активен"
+        wireguard_desc = "(Недостаточно баланса для продления некоторых устройств)"
+    elif devices_stat["no_sub"] > 0 and devices_stat["sub"] > 0:
+        wireguard_status = "частично активен"
+        wireguard_desc = "(Подробнее в «Мои устройства»)"
+    elif devices_stat["no_sub"] > 0 and devices_stat["sub"] == 0:
+        wireguard_status = "не активен"
+        wireguard_desc = "(Подробнее в «Мои устройства»)"
 
     devices = await db.get_devices_by_user_id_and_device_type(user["user_id"], "outline")
     outline_status = "не активен"
@@ -57,6 +58,10 @@ async def get_stats_for_menu(user):
         outline_status = "не активен"
         outline_desc = "(нет ключей)"
     else:
+        no_sub_auto_renewal = 0
+        no_sub_no_auto_renewal = 0
+        no_sub = 0
+        sub = 0
         for device in devices:
             server = await db.get_server(device["server_id"])
             outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
@@ -64,13 +69,28 @@ async def get_stats_for_menu(user):
             outline_client_usage = outline_manager.get_usage_data(outline_client["id"])
             usage_gb = outline_client_usage // (1000 ** 3)
             limit_gb = device["outline_limit"]
-            if usage_gb < limit_gb:
-                outline_status = "активен"
-                outline_desc = ""
-                break
+            is_active = usage_gb < limit_gb or device["sub_time"] > datetime.now()
+            if not is_active and device["has_auto_renewal"]:
+                no_sub_auto_renewal += 1
+            elif is_active:
+                sub += 1
+            elif not is_active and not device["has_auto_renewal"]:
+                no_sub_no_auto_renewal += 1
+            elif not is_active:
+                no_sub += 1
+
+        if no_sub_auto_renewal > 0 and sub > 0:
+            wireguard_status = "частично активен"
+            wireguard_desc = "(Недостаточно баланса для продления некоторых устройств)"
+        elif no_sub > 0 and sub > 0:
+            wireguard_status = "частично активен"
+            wireguard_desc = "(Подробнее в «Мои устройства»)"
+        elif no_sub > 0 and sub == 0:
+            wireguard_status = "не активен"
+            wireguard_desc = "(Подробнее в «Мои устройства»)"
 
     return {
-        "days": days, "wireguard_status": wireguard_status, "wireguard_desc": wireguard_desc,
+        "wireguard_status": wireguard_status, "wireguard_desc": wireguard_desc,
         "outline_status": outline_status, "outline_desc": outline_desc
     }
 
