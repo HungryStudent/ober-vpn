@@ -42,6 +42,15 @@ async def get_devices_by_user_id_and_device_type_and_country_id(user_id, device_
     return rows
 
 
+async def get_devices_by_user_id_and_device_type_and_server_id(user_id, device_type, server_id):
+    conn: Connection = await get_conn()
+    rows = await conn.fetch("SELECT * FROM devices "
+                            "WHERE user_id = $1 AND device_type = $2 and server_id = $3", user_id, device_type,
+                            server_id)
+    await conn.close()
+    return rows
+
+
 async def get_devices_stat_wg(user_id):
     conn: Connection = await get_conn()
     row = await conn.fetchrow("select count(*) as all_devices,"
@@ -52,6 +61,7 @@ async def get_devices_stat_wg(user_id):
                               "from devices where user_id = $1 and device_type = 'wireguard'", user_id)
     await conn.close()
     return row
+
 
 async def add_new_device(user_id, device_type, name, server_id, sub_time, product_id=None, outline_limit=None):
     conn: Connection = await get_conn()

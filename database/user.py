@@ -43,12 +43,31 @@ async def get_users_by_country_id(country_id):
     return rows
 
 
+async def get_users_by_server_id(server_id):
+    conn: Connection = await get_conn()
+    rows = await conn.fetch("select distinct users.user_id, balance, is_wireguard_active from users "
+                            "join devices d on users.user_id = d.user_id "
+                            "join servers s on s.server_id = $1", server_id)
+    await conn.close()
+    return rows
+
+
 async def get_today_users_by_country_id(country_id):
     conn: Connection = await get_conn()
     rows = await conn.fetch("select distinct users.user_id, balance, is_wireguard_active from users "
                             "join devices d on users.user_id = d.user_id "
                             "join servers s on s.server_id = d.server_id "
                             "join countries c on c.country_id = s.country_id and c.country_id = $1 "
+                            "WHERE reg_time::date = NOW()::date", country_id)
+    await conn.close()
+    return rows
+
+
+async def get_today_users_by_server_id(country_id):
+    conn: Connection = await get_conn()
+    rows = await conn.fetch("select distinct users.user_id, balance, is_wireguard_active from users "
+                            "join devices d on users.user_id = d.user_id "
+                            "join servers s on s.server_id = $1 "
                             "WHERE reg_time::date = NOW()::date", country_id)
     await conn.close()
     return rows

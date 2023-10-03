@@ -136,6 +136,48 @@ async def get_stats_by_country(user, country_id):
     }
 
 
+async def get_stats_by_server(user, server_id):
+    devices = await db.get_devices_by_user_id_and_device_type_and_server_id(user["user_id"], "wireguard", server_id)
+    amount = len(devices) * wireguard_price
+    try:
+        days = float(user["balance"]) // amount
+    except ZeroDivisionError:
+        days = 0
+    if user["is_wireguard_active"]:
+        wireguard_status = "активен"
+        wireguard_desc = ""
+    else:
+        wireguard_status = "не активен"
+        wireguard_desc = "(недостаточно средств)"
+    if len(devices) == 0:
+        wireguard_status = "не активен"
+        wireguard_desc = "(нет конфигов)"
+
+    devices = await db.get_devices_by_user_id_and_device_type_and_server_id(user["user_id"], "outline", server_id)
+    outline_status = "не активен"
+    outline_desc = "(закончился трафик)"
+    if len(devices) == 0:
+        outline_status = "не активен"
+        outline_desc = "(нет ключей)"
+    else:
+        for device in devices:
+            server = await db.get_server(device["server_id"])
+            outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
+            outline_client = outline_manager.get_client(device["outline_id"])
+            outline_client_usage = outline_manager.get_usage_data(outline_client["id"])
+            usage_gb = outline_client_usage // (1000 ** 3)
+            limit_gb = device["outline_limit"]
+            if usage_gb < limit_gb:
+                outline_status = "активен"
+                outline_desc = ""
+                break
+
+    return {
+        "days": days, "wireguard_status": wireguard_status, "wireguard_desc": wireguard_desc,
+        "outline_status": outline_status, "outline_desc": outline_desc
+    }
+
+
 async def get_outline_gb(device_id):
     device = await db.get_device(device_id)
     server = await db.get_server(device["server_id"])

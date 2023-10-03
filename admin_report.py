@@ -95,6 +95,46 @@ OL акт/нет ключей/нет трафика {ol_active}/{ol_no_config}/{
         msg += f"""WG акт/нет конф/нет средств {wg_active}/{wg_no_config}/{wg_no_money}
 
 OL акт/нет ключей/нет трафика {ol_active}/{ol_no_config}/{ol_no_limit}\n\n"""
+
+    servers = await db.get_servers()
+    for server in servers:
+        users = await db.get_users_by_server_id(server["server_id"])
+        today_users = await db.get_today_users_by_server_id(server["server_id"])
+
+        msg += f"""{server["ip_address"]}:
+
+Общее количество клиентов - {len(users)}
+Количество клиентов пришедших за день - {len(today_users)}\n\n"""
+        all_active = 0
+        all_inactive = 0
+        wg_active = 0
+        wg_no_config = 0
+        wg_no_money = 0
+        ol_active = 0
+        ol_no_config = 0
+        ol_no_limit = 0
+        for user in users:
+            stats = await devices.get_stats_by_server(user, server["server_id"])
+            if stats["wireguard_status"] == "активен" or stats["outline_status"] == "активен":
+                all_active += 1
+                if stats["wireguard_status"] == "активен":
+                    wg_active += 1
+                if stats["outline_status"] == "активен":
+                    ol_active += 1
+            elif stats["wireguard_status"] == "не активен" and stats["outline_status"] == "не активен":
+                all_inactive += 1
+                if stats["wireguard_desc"] == "(нет конфигов)":
+                    wg_no_config += 1
+                elif stats["wireguard_desc"] == "(недостаточно средств)":
+                    wg_no_money += 1
+
+                if stats["outline_desc"] == "(нет ключей)":
+                    ol_no_config += 1
+                elif stats["outline_desc"] == "(закончился трафик)":
+                    ol_no_limit += 1
+        msg += f"""WG акт/нет конф/нет средств {wg_active}/{wg_no_config}/{wg_no_money}
+
+OL акт/нет ключей/нет трафика {ol_active}/{ol_no_config}/{ol_no_limit}\n\n"""
     print(time.time() - start)
     return msg
 
