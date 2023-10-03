@@ -34,7 +34,7 @@ async def yookassa_request(request: Request):
         elif device["device_type"] == "outline":
             price = outline_prices[device["product_id"]]["price"]
             history_msg = "Оплата ключей"
-        devices = await db.get_devices_expired_sub_time_by_has_auto_renewal_and_user_id(True, message.from_user.id)
+        devices = await db.get_devices_expired_sub_time_by_has_auto_renewal_and_user_id(True, user_id)
         for device in devices:
             user = await db.get_user(device["user_id"])
             price = 0
