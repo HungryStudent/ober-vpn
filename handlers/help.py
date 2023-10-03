@@ -39,6 +39,8 @@ async def video_help(call: CallbackQuery, state: FSMContext):
 iOS/iPadOS:
 Настройка Outline —  <a href='https://youtu.be/l9rZnaOw_dU'>ссылка</a>
 Настройка WireGuard — <a href='https://youtu.be/56ULmBV4QSE'>ссылка</a>
+Автоматизация WireGuard (включение и выключение VPN при входе и выходе из приложения) — <a href='https://youtu.be/qWCYG7aAU1c'>ссылка</a>
+Автоматизация Outline (включение и выключение VPN при входе и выходе из приложения) — <a href='https://www.youtube.com/watch?v=_E8RCyz3KUY'>ссылка</a> 
 
 Android:
 Настройка Outline —  <a href='https://youtu.be/PIvgt_43RRo'>ссылка</a>

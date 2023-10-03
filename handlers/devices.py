@@ -64,8 +64,6 @@ Outline (OL) Тарифы:
 
 async def get_text_for_device(device):
     days = (device["sub_time"] - datetime.today()).days
-    if device["sub_time"].date() == datetime.today().date():
-        days = 1
     if days == 0:
         days = 1
     elif days < 0:
