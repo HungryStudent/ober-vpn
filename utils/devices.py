@@ -52,8 +52,8 @@ async def get_stats_for_menu(user):
         wireguard_desc = "(Подробнее в «Мои устройства»)"
 
     devices = await db.get_devices_by_user_id_and_device_type(user["user_id"], "outline")
-    outline_status = "не активен"
-    outline_desc = "(закончился трафик)"
+    outline_status = "активен"
+    outline_desc = ""
     if len(devices) == 0:
         outline_status = "не активен"
         outline_desc = "(нет ключей)"
@@ -78,7 +78,6 @@ async def get_stats_for_menu(user):
                 no_sub_no_auto_renewal += 1
             elif not is_active:
                 no_sub += 1
-
         if no_sub_auto_renewal > 0 and sub > 0:
             wireguard_status = "частично активен"
             wireguard_desc = "(Недостаточно баланса для продления некоторых устройств)"
