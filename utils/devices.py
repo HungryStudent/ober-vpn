@@ -124,7 +124,10 @@ async def get_stats_by_country(user, country_id):
             server = await db.get_server(device["server_id"])
             outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
             outline_client = outline_manager.get_client(device["outline_id"])
-            outline_client_usage = outline_manager.get_usage_data(outline_client["id"])
+            if outline_client is None:
+                outline_client_usage = device["outline_limit"]
+            else:
+                outline_client_usage = outline_manager.get_usage_data(outline_client["id"])
             usage_gb = outline_client_usage // (1000 ** 3)
             limit_gb = device["outline_limit"]
             if usage_gb < limit_gb:
@@ -166,7 +169,10 @@ async def get_stats_by_server(user, server_id):
             server = await db.get_server(device["server_id"])
             outline_manager = server_utils.Outline(server["outline_url"], server["outline_sha"])
             outline_client = outline_manager.get_client(device["outline_id"])
-            outline_client_usage = outline_manager.get_usage_data(outline_client["id"])
+            if outline_client is None:
+                outline_client_usage = device["outline_limit"]
+            else:
+                outline_client_usage = outline_manager.get_usage_data(outline_client["id"])
             usage_gb = outline_client_usage // (1000 ** 3)
             limit_gb = device["outline_limit"]
             if usage_gb < limit_gb:
