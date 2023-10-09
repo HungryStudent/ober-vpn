@@ -37,7 +37,6 @@ async def get_stats_for_menu(user):
     devices_stat = await db.get_devices_stat_wg(user["user_id"])
     wireguard_status = "активен"
     wireguard_desc = ""
-    print(devices_stat)
     if devices_stat["all_devices"] == 0:
         wireguard_status = "не активен"
         wireguard_desc = "(нет конфигов)"

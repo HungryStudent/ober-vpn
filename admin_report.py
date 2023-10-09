@@ -55,7 +55,6 @@ async def create_report():
 WG акт/нет конф/нет средств {wg_active}/{wg_no_config}/{wg_no_money}
 
 OL акт/нет ключей/нет трафика {ol_active}/{ol_no_config}/{ol_no_limit}\n\n"""
-    print(time.time() - start)
     countries = await db.get_countries()
     for country in countries:
         users = await db.get_users_by_country_id(country["country_id"])
@@ -135,7 +134,6 @@ OL акт/нет ключей/нет трафика {ol_active}/{ol_no_config}/{
         msg += f"""WG акт/нет конф/нет средств {wg_active}/{wg_no_config}/{wg_no_money}
 
 OL акт/нет ключей/нет трафика {ol_active}/{ol_no_config}/{ol_no_limit}\n\n"""
-    print(time.time() - start)
     return msg
 
 
