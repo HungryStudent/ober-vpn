@@ -373,7 +373,7 @@ async def device_menu(call: CallbackQuery, callback_data: dict):
         await call.message.answer_photo(open(f"OberVPN-{number}.png", "rb"))
 
         # await call.message.answer_document(open(f"OberVPN-{number}.conf", "rb"),
-        await call.message.answer_document(open(f"settings.ini", "rb"),
+        await call.message.answer_document(open(f"OberVPN-{number}.conf", "rb"),
                                            caption=device_msg["text"],
                                            reply_markup=device_msg["kb"])
         os.remove(f"OberVPN-{number}.png")

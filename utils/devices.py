@@ -219,7 +219,7 @@ async def check_after_change_balance(user_id):
                 outline_client = outline_manager.get_client(device["outline_id"])
                 outline_client_usage = outline_manager.get_usage_data(outline_client["id"]) // (1000 ** 3)
                 await db.set_device_outline_traffic(device["device_id"], outline_client_usage)
-                limit = outline_client['dataLimit']['bytes'] // (1000 ** 3) + outline_client_usage
+                limit = device["outline_limit"] + outline_client_usage
                 outline_manager.set_data_limit(device["outline_id"], limit)
 
             await db.update_user_balance(user["user_id"], -price)
